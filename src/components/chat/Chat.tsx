@@ -10,10 +10,12 @@ export function Chat() {
   const [isSending, setIsSending] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
-  // Filter out messages received while DND is active
+  // Filter out messages received while DND is active (but always show system messages)
   const visibleMessages = dndEnabledAt
-    ? messages.filter(m => m.created_at < dndEnabledAt)
+    ? messages.filter(m => m.message_type === 'system' || m.created_at < dndEnabledAt)
     : messages
+  
+  const isDndActive = !!dndEnabledAt
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -115,20 +117,26 @@ export function Chat() {
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="chat-input-container">
+      {isDndActive && (
+        <div className="chat-system-message chat-dnd-warning">
+          You cannot send or receive messages while you have Do Not Disturb activated
+        </div>
+      )}
+
+      <form onSubmit={handleSubmit} className={`chat-input-container ${isDndActive ? 'chat-input-disabled' : ''}`}>
         <input
           ref={inputRef}
           type="text"
           className="chat-input"
           value={content}
           onChange={(e) => setContent(e.target.value)}
-          placeholder="Message"
-          disabled={isSending}
+          placeholder={isDndActive ? 'Do Not Disturb is active' : 'Message'}
+          disabled={isSending || isDndActive}
         />
         <button
           type="submit"
           className="chat-send-btn"
-          disabled={!content.trim() || isSending}
+          disabled={!content.trim() || isSending || isDndActive}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
             <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
