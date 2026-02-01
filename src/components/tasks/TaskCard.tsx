@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
 import { getAvatarColor } from '@/lib/colors'
 import type { Participant, Task } from '@/types/database'
 
@@ -22,6 +22,7 @@ export function TaskCard({
   isLoading 
 }: TaskCardProps) {
   const [newTaskContent, setNewTaskContent] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
   
   const completedCount = tasks.filter((t) => t.done).length
   const totalCount = tasks.length
@@ -35,6 +36,11 @@ export function TaskCard({
 
     await onAddTask(newTaskContent.trim())
     setNewTaskContent('')
+    
+    // Refocus input after task is added
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
   }
 
   return (
@@ -99,6 +105,7 @@ export function TaskCard({
       {isCurrentUser && (
         <form onSubmit={handleAddTask} className="task-add-container">
           <input
+            ref={inputRef}
             type="text"
             className="task-add-input"
             value={newTaskContent}

@@ -80,7 +80,7 @@ export function Room() {
         <div className="header-logo">
           <div className="logo-text">
             <span className="logo-main">hours</span>
-            <span className="logo-sub">by fiveable</span>
+            <span className="logo-sub">for Audrey</span>
           </div>
           <span className="logo-dot" />
         </div>

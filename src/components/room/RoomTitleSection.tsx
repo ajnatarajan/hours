@@ -26,7 +26,7 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
       {/* Title at top center */}
       <div className="room-title-wrapper">
         <h1 className="room-title">
-          {roomName || 'Study With Fiveable'}
+          {roomName || 'Study With Your Babi'}
         </h1>
         <button className="edit-title-btn" title="Edit title">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

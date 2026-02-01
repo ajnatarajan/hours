@@ -89,6 +89,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             .eq('room_id', room.id)
             .eq('is_active', true)
             .order('created_at', { ascending: true })
+            .order('id', { ascending: true })
           if (data) {
             setParticipants(data)
           }
@@ -209,6 +210,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
           .eq('room_id', roomData.id)
           .eq('is_active', true)
           .order('created_at', { ascending: true })
+          .order('id', { ascending: true })
 
         if (allParticipants) {
           setParticipants(allParticipants)
