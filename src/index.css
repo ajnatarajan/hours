@@ -1223,6 +1223,16 @@ body {
   color: var(--color-gray-800);
 }
 
+.header-icon-btn.dnd-active {
+  background: var(--color-purple);
+  color: var(--color-white);
+}
+
+.header-icon-btn.dnd-active:hover {
+  background: #8b66e8;
+  color: var(--color-white);
+}
+
 .header-icon-btn-sm {
   width: 28px;
   height: 28px;
@@ -1427,6 +1437,24 @@ body {
   height: 6px;
   border-radius: 50%;
   background: var(--color-gray-300);
+}
+
+.participant-dnd-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  background: var(--color-purple);
+  color: var(--color-white);
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.participant-dnd-badge svg {
+  width: 12px;
+  height: 12px;
 }
 
 /* Room Info Tile */

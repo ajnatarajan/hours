@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRoomContext } from '@/contexts/RoomContext'
+import { useChatContext } from '@/contexts/ChatContext'
 import { useParticipants } from '@/hooks/useParticipants'
 import { useTasks } from '@/hooks/useTasks'
 import { ParticipantList } from '@/components/room/ParticipantList'
@@ -10,12 +11,14 @@ import { Timer } from '@/components/timer/Timer'
 import { TaskCard } from '@/components/tasks/TaskCard'
 import { RoomTitleSection } from '@/components/room/RoomTitleSection'
 import { GuestNameModal } from '@/components/auth/GuestNameModal'
+import { defaultBackground } from '@/lib/backgrounds'
 
 export function Room() {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const { displayName } = useAuth()
-  const { room, joinRoom, leaveRoom, isLoading, error } = useRoomContext()
+  const { room, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb } = useRoomContext()
+  const { sendSystemMessage } = useChatContext()
   const { sortedParticipants, currentParticipant } = useParticipants()
   
   // Single instance of useTasks - state lifted up to Room level
@@ -24,6 +27,14 @@ export function Room() {
   const [showNameModal, setShowNameModal] = useState(false)
   const [hasAttemptedJoin, setHasAttemptedJoin] = useState(false)
   const [soloMode, setSoloMode] = useState(false)
+
+  const handleToggleDnd = async () => {
+    const newDndStatus = await toggleDoNotDisturb()
+    if (currentParticipant) {
+      const statusText = newDndStatus ? 'enabled' : 'disabled'
+      await sendSystemMessage(`${currentParticipant.name} ${statusText} Do Not Disturb`)
+    }
+  }
 
   useEffect(() => {
     if (!code) {
@@ -97,8 +108,13 @@ export function Room() {
             <span className="toggle-label">Solo mode</span>
           </label>
 
-          {/* Moon Icon (Dark Mode) */}
-          <button className="header-icon-btn" title="Toggle dark mode">
+          {/* Do Not Disturb Toggle */}
+          <button 
+            className={`header-icon-btn ${currentParticipant?.do_not_disturb ? 'dnd-active' : ''}`}
+            title={currentParticipant?.do_not_disturb ? 'Disable Do Not Disturb' : 'Enable Do Not Disturb'}
+            onClick={handleToggleDnd}
+          >
+            {/* Moon icon - purple background when DND is active via CSS */}
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
             </svg>
@@ -155,7 +171,7 @@ export function Room() {
 
           {/* Tile: Tasks */}
           <div className="tile tile-tasks">
-            {/* Cherry Blossom Background Video */}
+            {/* Background Video */}
             <video
               className="tasks-bg-video"
               autoPlay
@@ -163,7 +179,7 @@ export function Room() {
               muted
               playsInline
             >
-              <source src={`${import.meta.env.BASE_URL}cherry-blossom.mp4`} type="video/mp4" />
+              <source src={defaultBackground.url} type="video/mp4" />
             </video>
             
             <div className="tasks-panel-header">

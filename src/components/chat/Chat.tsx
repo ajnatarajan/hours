@@ -5,10 +5,15 @@ import { getAvatarColor } from '@/lib/colors'
 
 export function Chat() {
   const { messages, messagesEndRef, sendMessage } = useChatContext()
-  const { currentParticipant, participants } = useRoomContext()
+  const { currentParticipant, participants, dndEnabledAt } = useRoomContext()
   const [content, setContent] = useState('')
   const [isSending, setIsSending] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  // Filter out messages received while DND is active
+  const visibleMessages = dndEnabledAt
+    ? messages.filter(m => m.created_at < dndEnabledAt)
+    : messages
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -57,12 +62,12 @@ export function Chat() {
       </div>
 
       <div className="chat-messages">
-        {messages.length === 0 ? (
+        {visibleMessages.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--color-gray-400)', fontSize: '13px', padding: '20px 0' }}>
-            No messages yet. Say hello! 👋
+            {dndEnabledAt ? 'Do Not Disturb is on. Messages are hidden.' : 'No messages yet. Say hello! 👋'}
           </p>
         ) : (
-          messages.map((message, index) => {
+          visibleMessages.map((message, index) => {
             // Render system messages differently
             if (message.message_type === 'system') {
               return (
@@ -84,7 +89,7 @@ export function Chat() {
 
             // Check if this message should be grouped with the previous one
             // Group if same participant and previous message wasn't a system message
-            const prevMessage = messages[index - 1]
+            const prevMessage = visibleMessages[index - 1]
             const isGrouped = prevMessage && 
               prevMessage.participant_id === message.participant_id && 
               prevMessage.message_type !== 'system'

@@ -18,11 +18,13 @@ interface RoomContextValue {
   currentParticipant: Participant | null
   isLoading: boolean
   error: string | null
+  dndEnabledAt: string | null
   joinRoom: (code: string) => Promise<boolean>
   leaveRoom: () => void
   updatePresence: () => void
   updateRoomName: (newName: string | null) => Promise<void>
   updateParticipantName: (newName: string) => Promise<void>
+  toggleDoNotDisturb: () => Promise<boolean>
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null)
@@ -40,6 +42,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
   const [currentParticipant, setCurrentParticipant] = useState<Participant | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [dndEnabledAt, setDndEnabledAt] = useState<string | null>(null)
   
   // Prevent double joins in React Strict Mode
   const joiningRef = useRef(false)
@@ -309,6 +312,40 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [currentParticipant])
 
+  const toggleDoNotDisturb = useCallback(async (): Promise<boolean> => {
+    if (!currentParticipant) return false
+    
+    const newDndStatus = !currentParticipant.do_not_disturb
+    
+    const { data, error } = await supabase
+      .from('participants')
+      .update({ do_not_disturb: newDndStatus })
+      .eq('id', currentParticipant.id)
+      .select()
+      .single()
+    
+    if (error || !data) {
+      console.error('Failed to toggle Do Not Disturb:', error)
+      return false
+    }
+    
+    // Update local state immediately
+    setCurrentParticipant(data)
+    // Also update in participants list
+    setParticipants(prev => 
+      prev.map(p => p.id === data.id ? data : p)
+    )
+    
+    // Track when DND was enabled for chat filtering
+    if (newDndStatus) {
+      setDndEnabledAt(new Date().toISOString())
+    } else {
+      setDndEnabledAt(null)
+    }
+    
+    return newDndStatus
+  }, [currentParticipant])
+
   // Update presence periodically
   useEffect(() => {
     if (!currentParticipant) return
@@ -324,11 +361,13 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     currentParticipant,
     isLoading,
     error,
+    dndEnabledAt,
     joinRoom,
     leaveRoom,
     updatePresence,
     updateRoomName,
     updateParticipantName,
+    toggleDoNotDisturb,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

@@ -30,9 +30,14 @@ create table if not exists participants (
   user_id uuid references auth.users(id) on delete set null,
   name text not null,
   is_active boolean default true,
+  do_not_disturb boolean default false,
   last_seen timestamp with time zone default now(),
   created_at timestamp with time zone default now()
 );
+
+-- Migration: Add do_not_disturb column if it doesn't exist
+-- Run this in Supabase SQL Editor for existing databases:
+-- ALTER TABLE participants ADD COLUMN IF NOT EXISTS do_not_disturb boolean DEFAULT false;
 
 -- Tasks
 create table if not exists tasks (

@@ -71,6 +71,7 @@ export interface Database {
           user_id: string | null
           name: string
           is_active: boolean
+          do_not_disturb: boolean
           last_seen: string
           created_at: string
         }
@@ -80,6 +81,7 @@ export interface Database {
           user_id?: string | null
           name: string
           is_active?: boolean
+          do_not_disturb?: boolean
           last_seen?: string
           created_at?: string
         }
@@ -89,6 +91,7 @@ export interface Database {
           user_id?: string | null
           name?: string
           is_active?: boolean
+          do_not_disturb?: boolean
           last_seen?: string
           created_at?: string
         }
