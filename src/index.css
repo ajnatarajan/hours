@@ -630,10 +630,10 @@ body {
 }
 
 .task-empty-icon {
-  width: 48px;
-  height: 48px;
+  width: 64px;
+  height: 64px;
   margin-bottom: 8px;
-  opacity: 0.5;
+  object-fit: contain;
 }
 
 .task-empty-text {
