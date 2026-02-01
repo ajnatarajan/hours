@@ -259,6 +259,48 @@ body {
   font-size: 11px;
 }
 
+/* Edit name button for participants */
+.edit-name-btn {
+  background: none;
+  border: none;
+  color: var(--color-gray-400);
+  cursor: pointer;
+  padding: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.15s ease, color 0.15s ease;
+  flex-shrink: 0;
+}
+
+.participant-item:hover .edit-name-btn {
+  opacity: 1;
+}
+
+.edit-name-btn:hover {
+  color: var(--color-gray-600);
+}
+
+/* Participant name input for inline editing */
+.participant-name-input {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--color-gray-700);
+  background: var(--color-gray-50);
+  border: 1px solid var(--color-gray-300);
+  border-radius: 4px;
+  padding: 2px 6px;
+  outline: none;
+  min-width: 0;
+}
+
+.participant-name-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.1);
+}
+
 /* Chat */
 .chat-container {
   flex: 1;

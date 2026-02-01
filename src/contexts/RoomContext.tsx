@@ -22,6 +22,7 @@ interface RoomContextValue {
   leaveRoom: () => void
   updatePresence: () => void
   updateRoomName: (newName: string | null) => Promise<void>
+  updateParticipantName: (newName: string) => Promise<void>
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null)
@@ -186,11 +187,10 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             .single()
 
           if (existingParticipant) {
-            // Update existing participant
+            // Update existing participant - preserve their per-room name, only update activity status
             const { data: updatedParticipant } = await supabase
               .from('participants')
               .update({
-                name: displayName,
                 is_active: true,
                 last_seen: new Date().toISOString(),
                 user_id: user?.id ?? null,
@@ -289,6 +289,26 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     setRoom({ ...room, name: newName })
   }, [room])
 
+  const updateParticipantName = useCallback(async (newName: string) => {
+    if (!currentParticipant) return
+    
+    const { data } = await supabase
+      .from('participants')
+      .update({ name: newName })
+      .eq('id', currentParticipant.id)
+      .select()
+      .single()
+    
+    if (data) {
+      // Update local state immediately
+      setCurrentParticipant(data)
+      // Also update in participants list
+      setParticipants(prev => 
+        prev.map(p => p.id === data.id ? data : p)
+      )
+    }
+  }, [currentParticipant])
+
   // Update presence periodically
   useEffect(() => {
     if (!currentParticipant) return
@@ -308,6 +328,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     leaveRoom,
     updatePresence,
     updateRoomName,
+    updateParticipantName,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

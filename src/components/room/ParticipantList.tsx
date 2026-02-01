@@ -1,8 +1,53 @@
+import { useState, useRef, useEffect } from 'react'
 import { useParticipants } from '@/hooks/useParticipants'
+import { useRoomContext } from '@/contexts/RoomContext'
 import { getAvatarColor } from '@/lib/colors'
 
 export function ParticipantList() {
   const { sortedParticipants, currentParticipant, isParticipantActive } = useParticipants()
+  const { updateParticipantName } = useRoomContext()
+  
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedName, setEditedName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  // Auto-focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
+
+  const handleEditClick = () => {
+    if (currentParticipant) {
+      setEditedName(currentParticipant.name)
+      setIsEditing(true)
+    }
+  }
+
+  const handleSave = async () => {
+    const trimmedName = editedName.trim()
+    if (trimmedName && trimmedName !== currentParticipant?.name) {
+      await updateParticipantName(trimmedName)
+    }
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setEditedName('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleCancel()
+    }
+  }
 
   return (
     <div>
@@ -36,10 +81,34 @@ export function ParticipantList() {
               <div className="avatar" style={{ backgroundColor: color }}>
                 {initial}
               </div>
-              <span className="participant-name">
-                {participant.name}
-                {isMe && ' (you)'}
-              </span>
+              {isMe && isEditing ? (
+                <input
+                  ref={inputRef}
+                  type="text"
+                  className="participant-name-input"
+                  value={editedName}
+                  onChange={(e) => setEditedName(e.target.value)}
+                  onKeyDown={handleKeyDown}
+                  onBlur={handleSave}
+                  placeholder="Your name..."
+                  maxLength={30}
+                />
+              ) : (
+                <>
+                  <span className="participant-name">
+                    {participant.name}
+                    {isMe && ' (you)'}
+                  </span>
+                  {isMe && (
+                    <button className="edit-name-btn" title="Edit your name" onClick={handleEditClick}>
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                      </svg>
+                    </button>
+                  )}
+                </>
+              )}
               {!isActive && (
                 <span className="participant-inactive-badge">
                   <span className="inactive-dot" />
