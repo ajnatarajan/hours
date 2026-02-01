@@ -2,7 +2,7 @@ import { useParticipants } from '@/hooks/useParticipants'
 import { getAvatarColor } from '@/lib/colors'
 
 export function ParticipantList() {
-  const { participants, currentParticipant, isParticipantActive } = useParticipants()
+  const { sortedParticipants, currentParticipant, isParticipantActive } = useParticipants()
 
   return (
     <div>
@@ -25,7 +25,7 @@ export function ParticipantList() {
         </div>
       </div>
       <div className="participant-list">
-        {participants.map((participant) => {
+        {sortedParticipants.map((participant) => {
           const isMe = participant.id === currentParticipant?.id
           const isActive = isParticipantActive(participant)
           const initial = participant.name.charAt(0).toUpperCase()

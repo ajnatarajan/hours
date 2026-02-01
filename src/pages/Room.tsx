@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useRoomContext } from '@/contexts/RoomContext'
@@ -16,7 +16,7 @@ export function Room() {
   const navigate = useNavigate()
   const { displayName } = useAuth()
   const { room, joinRoom, leaveRoom, isLoading, error } = useRoomContext()
-  const { participants, currentParticipant } = useParticipants()
+  const { sortedParticipants, currentParticipant } = useParticipants()
   
   // Single instance of useTasks - state lifted up to Room level
   const { allTasks, addTask, toggleTask, deleteTask, isLoading: tasksLoading } = useTasks()
@@ -24,18 +24,6 @@ export function Room() {
   const [showNameModal, setShowNameModal] = useState(false)
   const [hasAttemptedJoin, setHasAttemptedJoin] = useState(false)
   const [soloMode, setSoloMode] = useState(false)
-
-  // Sort participants: current user first, then others sorted by join time (created_at)
-  const sortedParticipants = useMemo(() => {
-    if (!currentParticipant) return participants
-    
-    const others = participants
-      .filter(p => p.id !== currentParticipant.id)
-      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-    
-    const current = participants.find(p => p.id === currentParticipant.id)
-    return current ? [current, ...others] : others
-  }, [participants, currentParticipant])
 
   useEffect(() => {
     if (!code) {

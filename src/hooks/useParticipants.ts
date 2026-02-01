@@ -5,6 +5,18 @@ import type { Participant } from '@/types/database'
 export function useParticipants() {
   const { participants, currentParticipant } = useRoomContext()
 
+  // Sorted participants: current user first, then others by join time (created_at)
+  const sortedParticipants = useMemo(() => {
+    if (!currentParticipant) return participants
+
+    const others = participants
+      .filter((p) => p.id !== currentParticipant.id)
+      .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+
+    const current = participants.find((p) => p.id === currentParticipant.id)
+    return current ? [current, ...others] : others
+  }, [participants, currentParticipant])
+
   const otherParticipants = useMemo(() => {
     return participants.filter((p) => p.id !== currentParticipant?.id)
   }, [participants, currentParticipant])
@@ -23,6 +35,7 @@ export function useParticipants() {
 
   return {
     participants,
+    sortedParticipants,
     currentParticipant,
     otherParticipants,
     activeParticipants,
