@@ -155,6 +155,17 @@ export function Room() {
 
           {/* Tile: Tasks */}
           <div className="tile tile-tasks">
+            {/* Cherry Blossom Background Video */}
+            <video
+              className="tasks-bg-video"
+              autoPlay
+              loop
+              muted
+              playsInline
+            >
+              <source src={`${import.meta.env.BASE_URL}cherry-blossom.mp4`} type="video/mp4" />
+            </video>
+            
             <div className="tasks-panel-header">
               <span>Tasks</span>
               <div className="tasks-header-icons">

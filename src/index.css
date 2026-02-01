@@ -1333,6 +1333,21 @@ body {
   padding: 14px;
   overflow: hidden;
   min-height: 0;
+  position: relative;
+}
+
+/* Cherry Blossom Background Video */
+.tasks-bg-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 1;
+  opacity: 0.5;
+  pointer-events: none;
+  border-radius: inherit;
 }
 
 /* Tile Header with Icons */
@@ -1364,6 +1379,8 @@ body {
   font-size: 23px;
   color: var(--color-gray-800);
   margin-bottom: 16px;
+  position: relative;
+  z-index: 2;
 }
 
 .tasks-header-icons {
@@ -1385,6 +1402,8 @@ body {
   align-content: start;
   min-height: 0;
   padding-right: 8px;
+  position: relative;
+  z-index: 2;
 }
 
 /* Participant List Styles */
