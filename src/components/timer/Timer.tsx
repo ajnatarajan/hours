@@ -1,7 +1,13 @@
+import { useState } from 'react'
 import { useTimer } from '@/hooks/useTimer'
+import { useChatContext } from '@/contexts/ChatContext'
+import { useRoomContext } from '@/contexts/RoomContext'
 
 export function Timer() {
-  const { secondsLeft, isRunning, start, pause } = useTimer()
+  const { secondsLeft, isRunning, focusMinutes, start, pause } = useTimer()
+  const { sendSystemMessage } = useChatContext()
+  const { currentParticipant } = useRoomContext()
+  const [selectedPreset, setSelectedPreset] = useState('----------')
 
   const hours = Math.floor(secondsLeft / 3600)
   const minutes = Math.floor((secondsLeft % 3600) / 60)
@@ -12,6 +18,35 @@ export function Timer() {
     minutes.toString().padStart(2, '0'),
     seconds.toString().padStart(2, '0'),
   ].join(':')
+
+  const handleToggle = async () => {
+    const participantName = currentParticipant?.name || 'Someone'
+    
+    if (isRunning) {
+      // Stopping the timer
+      await pause()
+      await sendSystemMessage(`Timer stopped by ${participantName}.`)
+    } else {
+      // Starting the timer
+      await start()
+      
+      // Determine the duration text based on preset or minutes
+      let durationText: string
+      if (selectedPreset === 'Custom' || selectedPreset === '----------') {
+        if (focusMinutes === 25 || focusMinutes === 50) {
+          durationText = `${focusMinutes} mins`
+        } else {
+          durationText = 'Custom'
+        }
+      } else if (selectedPreset.includes('min')) {
+        durationText = `${focusMinutes} mins`
+      } else {
+        durationText = 'Custom'
+      }
+      
+      await sendSystemMessage(`Timer started for ${durationText} by ${participantName}.`)
+    }
+  }
 
   return (
     <div className="timer-tile-content">
@@ -37,7 +72,11 @@ export function Timer() {
       <div className="timer-display-large">{formattedTime}</div>
 
       <div className="timer-controls-row">
-        <select className="timer-preset-select">
+        <select 
+          className="timer-preset-select"
+          value={selectedPreset}
+          onChange={(e) => setSelectedPreset(e.target.value)}
+        >
           <option>----------</option>
           <option>25 min focus</option>
           <option>50 min focus</option>
@@ -46,7 +85,7 @@ export function Timer() {
 
         <button
           className="timer-toggle-btn"
-          onClick={isRunning ? pause : start}
+          onClick={handleToggle}
           title={isRunning ? 'Pause' : 'Start'}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

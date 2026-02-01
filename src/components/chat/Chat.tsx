@@ -1,13 +1,14 @@
-import { useState } from 'react'
-import { useChat } from '@/hooks/useChat'
+import { useState, useRef } from 'react'
+import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 import { getAvatarColor } from '@/lib/colors'
 
 export function Chat() {
-  const { messages, messagesEndRef, sendMessage } = useChat()
+  const { messages, messagesEndRef, sendMessage } = useChatContext()
   const { currentParticipant, participants } = useRoomContext()
   const [content, setContent] = useState('')
   const [isSending, setIsSending] = useState(false)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -20,6 +21,10 @@ export function Chat() {
     if (success) {
       setContent('')
     }
+    // Refocus input after send completes and scroll effect runs
+    requestAnimationFrame(() => {
+      inputRef.current?.focus()
+    })
   }
 
   return (
@@ -57,7 +62,16 @@ export function Chat() {
             No messages yet. Say hello! 👋
           </p>
         ) : (
-          messages.map((message) => {
+          messages.map((message, index) => {
+            // Render system messages differently
+            if (message.message_type === 'system') {
+              return (
+                <div key={message.id} className="chat-system-message">
+                  {message.content}
+                </div>
+              )
+            }
+
             const isOwn = message.participant_id === currentParticipant?.id
             const participant = participants.find(p => p.id === message.participant_id)
             const name = participant?.name || 'Unknown'
@@ -68,15 +82,24 @@ export function Chat() {
               minute: '2-digit',
             })
 
+            // Check if this message should be grouped with the previous one
+            // Group if same participant and previous message wasn't a system message
+            const prevMessage = messages[index - 1]
+            const isGrouped = prevMessage && 
+              prevMessage.participant_id === message.participant_id && 
+              prevMessage.message_type !== 'system'
+
             return (
-              <div key={message.id} className="chat-message">
-                <div className="chat-message-header">
-                  <div className="avatar avatar-sm" style={{ backgroundColor: color }}>
-                    {initial}
+              <div key={message.id} className={`chat-message ${isGrouped ? 'chat-message-grouped' : ''}`}>
+                {!isGrouped && (
+                  <div className="chat-message-header">
+                    <div className="avatar avatar-sm" style={{ backgroundColor: color }}>
+                      {initial}
+                    </div>
+                    <span className="chat-message-name">{isOwn ? 'You' : name}</span>
+                    <span className="chat-message-time">{time}</span>
                   </div>
-                  <span className="chat-message-name">{isOwn ? 'You' : name}</span>
-                  <span className="chat-message-time">{time}</span>
-                </div>
+                )}
                 <div className="chat-message-content" style={{ marginLeft: '32px' }}>
                   {message.content}
                 </div>
@@ -89,6 +112,7 @@ export function Chat() {
 
       <form onSubmit={handleSubmit} className="chat-input-container">
         <input
+          ref={inputRef}
           type="text"
           className="chat-input"
           value={content}

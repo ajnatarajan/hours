@@ -51,6 +51,7 @@ create table if not exists messages (
   room_id uuid references rooms(id) on delete cascade,
   participant_id uuid references participants(id) on delete cascade,
   content text not null,
+  message_type text default 'user' check (message_type in ('user', 'system')),
   created_at timestamp with time zone default now()
 );
 

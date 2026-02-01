@@ -282,6 +282,10 @@ body {
   gap: 2px;
 }
 
+.chat-message-grouped {
+  margin-top: -4px;
+}
+
 .chat-message-header {
   display: flex;
   align-items: center;

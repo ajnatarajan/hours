@@ -150,6 +150,7 @@ export interface Database {
           room_id: string
           participant_id: string
           content: string
+          message_type: 'user' | 'system'
           created_at: string
         }
         Insert: {
@@ -157,6 +158,7 @@ export interface Database {
           room_id: string
           participant_id: string
           content: string
+          message_type?: 'user' | 'system'
           created_at?: string
         }
         Update: {
@@ -164,6 +166,7 @@ export interface Database {
           room_id?: string
           participant_id?: string
           content?: string
+          message_type?: 'user' | 'system'
           created_at?: string
         }
         Relationships: [

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import { useRoomContext } from '@/contexts/RoomContext'
 import type { Task } from '@/types/database'
@@ -24,12 +24,6 @@ export function useTasks() {
     }
   }, [room])
 
-  // Keep a ref to the latest fetchTasks for stable subscription callback
-  const fetchTasksRef = useRef(fetchTasks)
-  useEffect(() => {
-    fetchTasksRef.current = fetchTasks
-  }, [fetchTasks])
-
   // Initial fetch - only when room changes
   useEffect(() => {
     if (room) {
@@ -37,7 +31,7 @@ export function useTasks() {
     }
   }, [room?.id])
 
-  // Subscribe to task changes - depends only on room (stable)
+  // Subscribe to task changes with individual event handlers (like chat)
   useEffect(() => {
     if (!room) return
 
@@ -46,13 +40,46 @@ export function useTasks() {
       .on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'tasks',
           filter: `room_id=eq.${room.id}`,
         },
-        () => {
-          fetchTasksRef.current()
+        (payload) => {
+          const newTask = payload.new as Task
+          setAllTasks((prev) => {
+            // Avoid duplicates from optimistic updates
+            if (prev.some((t) => t.id === newTask.id)) return prev
+            return [...prev, newTask]
+          })
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'tasks',
+          filter: `room_id=eq.${room.id}`,
+        },
+        (payload) => {
+          const updatedTask = payload.new as Task
+          setAllTasks((prev) =>
+            prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+          )
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: 'DELETE',
+          schema: 'public',
+          table: 'tasks',
+          filter: `room_id=eq.${room.id}`,
+        },
+        (payload) => {
+          const deletedTask = payload.old as { id: string }
+          setAllTasks((prev) => prev.filter((t) => t.id !== deletedTask.id))
         }
       )
       .subscribe()
@@ -89,6 +116,14 @@ export function useTasks() {
         return null
       }
 
+      // Immediately add to local state (like chat)
+      if (data) {
+        setAllTasks((prev) => {
+          if (prev.some((t) => t.id === data.id)) return prev
+          return [...prev, data]
+        })
+      }
+
       return data
     },
     [room, currentParticipant, allTasks]
@@ -96,32 +131,68 @@ export function useTasks() {
 
   const updateTask = useCallback(
     async (taskId: string, updates: Partial<Pick<Task, 'content' | 'done' | 'sort_order'>>) => {
-      const { error } = await supabase.from('tasks').update(updates).eq('id', taskId)
+      const { data, error } = await supabase
+        .from('tasks')
+        .update(updates)
+        .eq('id', taskId)
+        .select()
+        .single()
 
       if (error) {
         console.error('Failed to update task:', error)
+        return
+      }
+
+      // Immediately update local state (like chat)
+      if (data) {
+        setAllTasks((prev) =>
+          prev.map((t) => (t.id === data.id ? data : t))
+        )
       }
     },
     []
   )
 
-  // Use allTasks to find the task for toggling
   const toggleTask = useCallback(
     async (taskId: string) => {
       const task = allTasks.find((t) => t.id === taskId)
       if (!task) return
 
-      await updateTask(taskId, { done: !task.done })
+      const { data, error } = await supabase
+        .from('tasks')
+        .update({ done: !task.done })
+        .eq('id', taskId)
+        .select()
+        .single()
+
+      if (error) {
+        console.error('Failed to toggle task:', error)
+        return
+      }
+
+      // Immediately update local state (like chat)
+      if (data) {
+        setAllTasks((prev) =>
+          prev.map((t) => (t.id === data.id ? data : t))
+        )
+      }
     },
-    [allTasks, updateTask]
+    [allTasks]
   )
 
   const deleteTask = useCallback(async (taskId: string) => {
-    const { error } = await supabase.from('tasks').delete().eq('id', taskId)
+    const { error } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('id', taskId)
 
     if (error) {
       console.error('Failed to delete task:', error)
+      return
     }
+
+    // Immediately remove from local state (like chat)
+    setAllTasks((prev) => prev.filter((t) => t.id !== taskId))
   }, [])
 
   return {
