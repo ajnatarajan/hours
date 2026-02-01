@@ -1448,6 +1448,14 @@ body {
   margin-left: 4px;
 }
 
+.tasks-header-icons .header-icon-btn-sm {
+  color: #000000;
+}
+
+.tasks-header-icons .header-icon-btn-sm:hover {
+  color: var(--color-gray-700);
+}
+
 /* Updated Tasks Grid for Dashboard */
 .tile-tasks .tasks-grid {
   flex: 1 1 0;
