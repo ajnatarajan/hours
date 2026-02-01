@@ -25,6 +25,7 @@ interface RoomContextValue {
   updateRoomName: (newName: string | null) => Promise<void>
   updateParticipantName: (newName: string) => Promise<void>
   toggleDoNotDisturb: () => Promise<boolean>
+  updateBackground: (backgroundId: string) => Promise<void>
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null)
@@ -346,6 +347,20 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return newDndStatus
   }, [currentParticipant])
 
+  const updateBackground = useCallback(async (backgroundId: string) => {
+    if (!room) return
+    
+    await supabase
+      .from('room_state')
+      .update({ background_id: backgroundId })
+      .eq('room_id', room.id)
+    
+    // Optimistic update (realtime subscription will confirm)
+    if (roomState) {
+      setRoomState({ ...roomState, background_id: backgroundId })
+    }
+  }, [room, roomState])
+
   // Update presence periodically
   useEffect(() => {
     if (!currentParticipant) return
@@ -368,6 +383,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     updateRoomName,
     updateParticipantName,
     toggleDoNotDisturb,
+    updateBackground,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

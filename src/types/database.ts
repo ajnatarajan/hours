@@ -38,6 +38,7 @@ export interface Database {
           running: boolean
           focus_minutes: number
           break_minutes: number
+          background_id: string | null
         }
         Insert: {
           room_id: string
@@ -46,6 +47,7 @@ export interface Database {
           running?: boolean
           focus_minutes?: number
           break_minutes?: number
+          background_id?: string | null
         }
         Update: {
           room_id?: string
@@ -54,6 +56,7 @@ export interface Database {
           running?: boolean
           focus_minutes?: number
           break_minutes?: number
+          background_id?: string | null
         }
         Relationships: [
           {

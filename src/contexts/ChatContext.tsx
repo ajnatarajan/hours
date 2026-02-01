@@ -11,13 +11,16 @@ import { supabase } from '@/lib/supabase'
 import { useRoomContext } from './RoomContext'
 import type { Message } from '@/types/database'
 
+const MESSAGES_PER_PAGE = 100
+
 interface ChatContextValue {
   messages: Message[]
   isLoading: boolean
+  isLoadingMore: boolean
+  hasMore: boolean
   sendMessage: (content: string) => Promise<boolean>
   sendSystemMessage: (content: string) => Promise<boolean>
-  messagesEndRef: React.RefObject<HTMLDivElement | null>
-  scrollToBottom: () => void
+  loadOlderMessages: () => Promise<void>
 }
 
 const ChatContext = createContext<ChatContextValue | null>(null)
@@ -26,27 +29,58 @@ export function ChatProvider({ children }: { children: ReactNode }) {
   const { room, currentParticipant } = useRoomContext()
   const [messages, setMessages] = useState<Message[]>([])
   const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
+  const hasMoreRef = useRef(true)
 
-  // Fetch messages for the room
+  // Fetch most recent messages for the room
   const fetchMessages = useCallback(async () => {
     if (!room) return
 
     setIsLoading(true)
+    hasMoreRef.current = true
 
     const { data } = await supabase
       .from('messages')
       .select('*')
       .eq('room_id', room.id)
-      .order('created_at', { ascending: true })
-      .limit(100)
+      .order('created_at', { ascending: false })  // Newest first
+      .limit(MESSAGES_PER_PAGE)
 
     if (data) {
-      setMessages(data)
+      // Reverse for chronological display (oldest at top, newest at bottom)
+      setMessages(data.reverse())
+      // If we got fewer than the limit, there are no more older messages
+      hasMoreRef.current = data.length === MESSAGES_PER_PAGE
     }
 
     setIsLoading(false)
   }, [room])
+
+  // Load older messages (pagination)
+  const loadOlderMessages = useCallback(async () => {
+    if (!room || isLoadingMore || !hasMoreRef.current || messages.length === 0) return
+
+    const oldestMessage = messages[0]
+    setIsLoadingMore(true)
+
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .eq('room_id', room.id)
+      .lt('created_at', oldestMessage.created_at)  // Older than current oldest
+      .order('created_at', { ascending: false })   // Newest of the older batch first
+      .limit(MESSAGES_PER_PAGE)
+
+    if (data && data.length > 0) {
+      // Reverse for chronological order and prepend to existing messages
+      setMessages((prev) => [...data.reverse(), ...prev])
+      hasMoreRef.current = data.length === MESSAGES_PER_PAGE
+    } else {
+      hasMoreRef.current = false
+    }
+
+    setIsLoadingMore(false)
+  }, [room, isLoadingMore, messages])
 
   // Initial fetch
   useEffect(() => {
@@ -149,24 +183,16 @@ export function ChatProvider({ children }: { children: ReactNode }) {
     [room, currentParticipant]
   )
 
-  const scrollToBottom = useCallback(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
-  }, [])
-
-  // Auto-scroll on new messages
-  useEffect(() => {
-    scrollToBottom()
-  }, [messages.length, scrollToBottom])
-
   return (
     <ChatContext.Provider
       value={{
         messages,
         isLoading,
+        isLoadingMore,
+        hasMore: hasMoreRef.current,
         sendMessage,
         sendSystemMessage,
-        messagesEndRef,
-        scrollToBottom,
+        loadOlderMessages,
       }}
     >
       {children}

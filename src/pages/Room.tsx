@@ -11,13 +11,14 @@ import { Timer } from '@/components/timer/Timer'
 import { TaskCard } from '@/components/tasks/TaskCard'
 import { RoomTitleSection } from '@/components/room/RoomTitleSection'
 import { GuestNameModal } from '@/components/auth/GuestNameModal'
-import { defaultBackground } from '@/lib/backgrounds'
+import { BackgroundSelector } from '@/components/tasks/BackgroundSelector'
+import { backgrounds, defaultBackground } from '@/lib/backgrounds'
 
 export function Room() {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const { displayName } = useAuth()
-  const { room, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb } = useRoomContext()
+  const { room, roomState, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb } = useRoomContext()
   const { sendSystemMessage } = useChatContext()
   const { sortedParticipants, currentParticipant } = useParticipants()
   
@@ -27,6 +28,10 @@ export function Room() {
   const [showNameModal, setShowNameModal] = useState(false)
   const [hasAttemptedJoin, setHasAttemptedJoin] = useState(false)
   const [soloMode, setSoloMode] = useState(false)
+
+  // Derive current background from room state
+  const currentBackgroundId = roomState?.background_id || 'video-1'
+  const currentBackground = backgrounds.find(b => b.id === currentBackgroundId) || defaultBackground
 
   const handleToggleDnd = async () => {
     const newDndStatus = await toggleDoNotDisturb()
@@ -52,10 +57,8 @@ export function Room() {
 
   const handleNameComplete = () => {
     setShowNameModal(false)
-    if (code) {
-      setHasAttemptedJoin(true)
-      joinRoom(code)
-    }
+    // Don't call joinRoom here - let the useEffect handle it
+    // once displayName is properly updated in context
   }
 
   const handleLeave = () => {
@@ -173,18 +176,20 @@ export function Room() {
           <div className="tile tile-tasks">
             {/* Background Video */}
             <video
+              key={currentBackground.id}
               className="tasks-bg-video"
               autoPlay
               loop
               muted
               playsInline
             >
-              <source src={defaultBackground.url} type="video/mp4" />
+              <source src={currentBackground.url} type="video/mp4" />
             </video>
             
             <div className="tasks-panel-header">
               <span>Tasks</span>
               <div className="tasks-header-icons">
+                <BackgroundSelector />
                 <button className="header-icon-btn-sm" title="Help">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <circle cx="12" cy="12" r="10" />

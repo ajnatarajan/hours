@@ -19,13 +19,8 @@ export function Home() {
   const [showAuthModal, setShowAuthModal] = useState(false)
   const [pendingAction, setPendingAction] = useState<'create' | 'join' | null>(null)
 
-  const handleCreateRoom = async () => {
-    if (!displayName) {
-      setPendingAction('create')
-      setShowGuestModal(true)
-      return
-    }
-
+  // Core actions - perform the work without auth checks
+  const performCreateRoom = async () => {
     setIsCreating(true)
     setError('')
 
@@ -39,15 +34,9 @@ export function Home() {
     setIsCreating(false)
   }
 
-  const handleJoinRoom = async () => {
+  const performJoinRoom = async () => {
     if (!joinCode.trim()) {
       setError('Please enter a room code')
-      return
-    }
-
-    if (!displayName) {
-      setPendingAction('join')
-      setShowGuestModal(true)
       return
     }
 
@@ -64,24 +53,48 @@ export function Home() {
     setIsJoining(false)
   }
 
-  const handleGuestComplete = () => {
-    setShowGuestModal(false)
+  // Execute pending action after auth completes
+  const executePendingAction = () => {
     if (pendingAction === 'create') {
-      handleCreateRoom()
+      performCreateRoom()
     } else if (pendingAction === 'join') {
-      handleJoinRoom()
+      performJoinRoom()
     }
     setPendingAction(null)
   }
 
+  // UI handlers - check auth, prompt if needed
+  const handleCreateRoom = () => {
+    if (!displayName) {
+      setPendingAction('create')
+      setShowGuestModal(true)
+      return
+    }
+    performCreateRoom()
+  }
+
+  const handleJoinRoom = () => {
+    if (!joinCode.trim()) {
+      setError('Please enter a room code')
+      return
+    }
+    if (!displayName) {
+      setPendingAction('join')
+      setShowGuestModal(true)
+      return
+    }
+    performJoinRoom()
+  }
+
+  // Modal completion handlers
+  const handleGuestComplete = () => {
+    setShowGuestModal(false)
+    executePendingAction()
+  }
+
   const handleAuthComplete = () => {
     setShowAuthModal(false)
-    if (pendingAction === 'create') {
-      handleCreateRoom()
-    } else if (pendingAction === 'join') {
-      handleJoinRoom()
-    }
-    setPendingAction(null)
+    executePendingAction()
   }
 
   return (

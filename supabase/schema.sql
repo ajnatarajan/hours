@@ -13,14 +13,15 @@ create table if not exists rooms (
   created_at timestamp with time zone default now()
 );
 
--- Room state (timer sync)
+-- Room state (timer sync + shared settings)
 create table if not exists room_state (
   room_id uuid primary key references rooms(id) on delete cascade,
   phase text default 'focus' check (phase in ('focus', 'break')),
   started_at timestamp with time zone,
   running boolean default false,
   focus_minutes int default 25,
-  break_minutes int default 5
+  break_minutes int default 5,
+  background_id text default 'video-1'
 );
 
 -- Participants
@@ -38,6 +39,10 @@ create table if not exists participants (
 -- Migration: Add do_not_disturb column if it doesn't exist
 -- Run this in Supabase SQL Editor for existing databases:
 -- ALTER TABLE participants ADD COLUMN IF NOT EXISTS do_not_disturb boolean DEFAULT false;
+
+-- Migration: Add background_id column if it doesn't exist
+-- Run this in Supabase SQL Editor for existing databases:
+-- ALTER TABLE room_state ADD COLUMN IF NOT EXISTS background_id text DEFAULT 'video-1';
 
 -- Tasks
 create table if not exists tasks (

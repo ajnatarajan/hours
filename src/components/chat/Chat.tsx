@@ -1,14 +1,19 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 import { getAvatarColor } from '@/lib/colors'
 
 export function Chat() {
-  const { messages, messagesEndRef, sendMessage } = useChatContext()
+  const { messages, sendMessage, loadOlderMessages, isLoadingMore, hasMore } = useChatContext()
   const { currentParticipant, participants, dndEnabledAt } = useRoomContext()
   const [content, setContent] = useState('')
   const [isSending, setIsSending] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const hasScrolledInitially = useRef(false)
+  const prevScrollHeightRef = useRef<number>(0)
+  const isLoadingOlderRef = useRef(false)
 
   // Filter out messages received while DND is active (but always show system messages)
   const visibleMessages = dndEnabledAt
@@ -16,6 +21,51 @@ export function Chat() {
     : messages
   
   const isDndActive = !!dndEnabledAt
+
+  // Handle scroll behavior - instant on first load, smooth for new messages
+  // Also preserve scroll position when older messages are prepended
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container || visibleMessages.length === 0) return
+
+    if (!hasScrolledInitially.current) {
+      // Instant snap on first render with messages
+      container.scrollTop = container.scrollHeight
+      hasScrolledInitially.current = true
+    } else if (isLoadingOlderRef.current) {
+      // Preserve scroll position after prepending older messages
+      const newScrollHeight = container.scrollHeight
+      const scrollDiff = newScrollHeight - prevScrollHeightRef.current
+      container.scrollTop = scrollDiff
+      isLoadingOlderRef.current = false
+    } else {
+      // Smooth scroll for new messages (appended at bottom)
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+    }
+  }, [visibleMessages.length])
+
+  // Handle scroll to load older messages
+  const handleScroll = useCallback(() => {
+    const container = containerRef.current
+    if (!container || isLoadingMore || !hasMore) return
+
+    // Trigger load when scrolled near the top (within 50px)
+    if (container.scrollTop < 50) {
+      // Capture scroll height before loading
+      prevScrollHeightRef.current = container.scrollHeight
+      isLoadingOlderRef.current = true
+      loadOlderMessages()
+    }
+  }, [isLoadingMore, hasMore, loadOlderMessages])
+
+  // Attach scroll listener
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+
+    container.addEventListener('scroll', handleScroll)
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [handleScroll])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -63,7 +113,14 @@ export function Chat() {
         </button>
       </div>
 
-      <div className="chat-messages">
+      <div ref={containerRef} className="chat-messages">
+        {/* Loading indicator for older messages */}
+        {isLoadingMore && (
+          <div className="chat-loading-more">
+            <span className="chat-loading-spinner" />
+            Loading older messages...
+          </div>
+        )}
         {visibleMessages.length === 0 ? (
           <p style={{ textAlign: 'center', color: 'var(--color-gray-400)', fontSize: '13px', padding: '20px 0' }}>
             {dndEnabledAt ? 'Do Not Disturb is on. Messages are hidden.' : 'No messages yet. Say hello! 👋'}
