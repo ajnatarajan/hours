@@ -1352,16 +1352,20 @@ body {
   gap: 6px;
 }
 
-.participant-timer-badge {
+.participant-inactive-badge {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px;
-  background: #ef4444;
-  color: var(--color-white);
-  border-radius: var(--radius-full);
   font-size: 11px;
-  font-weight: 500;
+  color: var(--color-gray-400);
+  margin-left: auto;
+}
+
+.inactive-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-gray-300);
 }
 
 /* Room Info Tile */
@@ -1406,6 +1410,26 @@ body {
   color: var(--color-gray-600);
 }
 
+.room-title-input {
+  font-size: 36px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-align: center;
+  line-height: 1.1;
+  color: var(--color-gray-800);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid var(--color-primary);
+  outline: none;
+  width: 100%;
+  max-width: 400px;
+  padding: 4px 8px;
+}
+
+.room-title-input::placeholder {
+  color: var(--color-gray-400);
+}
+
 .room-link-row {
   display: flex;
   align-items: center;
@@ -1415,6 +1439,7 @@ body {
 
 .room-link-row .room-link-input {
   flex: 1;
+  min-width: 0;
   max-width: 400px;
   text-align: left;
   border-radius: 4px;
@@ -1424,11 +1449,16 @@ body {
   height: 36px;
 }
 
+.room-link-row .room-link-copy-btn {
+  flex-shrink: 0;
+}
+
 .room-action-icons {
   display: flex;
   align-items: center;
   gap: 6px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
 .room-action-btn {

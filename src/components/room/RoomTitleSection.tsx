@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect } from 'react'
+import { useRoomContext } from '@/contexts/RoomContext'
 
 interface RoomTitleSectionProps {
   roomCode: string
@@ -7,9 +8,21 @@ interface RoomTitleSectionProps {
 }
 
 export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSectionProps) {
+  const { updateRoomName } = useRoomContext()
   const [copied, setCopied] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  const [editedName, setEditedName] = useState('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const roomUrl = `https://hours.zone/invite/${roomCode}`
+
+  // Auto-focus input when entering edit mode
+  useEffect(() => {
+    if (isEditing && inputRef.current) {
+      inputRef.current.focus()
+      inputRef.current.select()
+    }
+  }, [isEditing])
 
   const handleCopy = async () => {
     try {
@@ -21,19 +34,61 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
     }
   }
 
+  const handleEditClick = () => {
+    setEditedName(roomName || '')
+    setIsEditing(true)
+  }
+
+  const handleSave = async () => {
+    const trimmedName = editedName.trim()
+    await updateRoomName(trimmedName || null)
+    setIsEditing(false)
+  }
+
+  const handleCancel = () => {
+    setIsEditing(false)
+    setEditedName('')
+  }
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      handleSave()
+    } else if (e.key === 'Escape') {
+      e.preventDefault()
+      handleCancel()
+    }
+  }
+
   return (
     <div className="room-info-content">
       {/* Title at top center */}
       <div className="room-title-wrapper">
-        <h1 className="room-title">
-          {roomName || 'Study With Your Babi'}
-        </h1>
-        <button className="edit-title-btn" title="Edit title">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </button>
+        {isEditing ? (
+          <input
+            ref={inputRef}
+            type="text"
+            className="room-title-input"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleSave}
+            placeholder="Room title..."
+            maxLength={45}
+          />
+        ) : (
+          <>
+            <h1 className="room-title">
+              {roomName || 'Study With Your Babi'}
+            </h1>
+            <button className="edit-title-btn" title="Edit title" onClick={handleEditClick}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
 
       {/* Bottom row: link, copy, icons */}
@@ -68,18 +123,6 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
               <path d="M9 18V5l12-2v13" />
               <circle cx="6" cy="18" r="3" />
               <circle cx="18" cy="16" r="3" />
-            </svg>
-          </button>
-          <button className="room-action-btn room-action-btn-green" title="Accessibility">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="4" r="2" />
-              <path d="M12 6v6m-4-3h8M8 21l4-9 4 9" />
-            </svg>
-          </button>
-          <button className="room-action-btn room-action-btn-dark" title="Sound">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" />
-              <path d="M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" strokeWidth="2" />
             </svg>
           </button>
           <button className="room-action-btn room-action-btn-red" title="Leave Room" onClick={onLeave}>

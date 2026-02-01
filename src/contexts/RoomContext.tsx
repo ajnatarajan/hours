@@ -21,6 +21,7 @@ interface RoomContextValue {
   joinRoom: (code: string) => Promise<boolean>
   leaveRoom: () => void
   updatePresence: () => void
+  updateRoomName: (newName: string | null) => Promise<void>
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null)
@@ -101,6 +102,31 @@ export function RoomProvider({ children }: { children: ReactNode }) {
       supabase.removeChannel(channel)
     }
   }, [room])
+
+  // Subscribe to room changes (for name updates from other participants)
+  useEffect(() => {
+    if (!room) return
+
+    const channel = supabase
+      .channel(`room:${room.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'rooms',
+          filter: `id=eq.${room.id}`,
+        },
+        (payload) => {
+          setRoom(payload.new as Room)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [room?.id])
 
   const joinRoom = useCallback(
     async (code: string): Promise<boolean> => {
@@ -253,6 +279,16 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [currentParticipant])
 
+  const updateRoomName = useCallback(async (newName: string | null) => {
+    if (!room) return
+    await supabase
+      .from('rooms')
+      .update({ name: newName || null })
+      .eq('id', room.id)
+    // Optimistic update (realtime subscription will confirm)
+    setRoom({ ...room, name: newName })
+  }, [room])
+
   // Update presence periodically
   useEffect(() => {
     if (!currentParticipant) return
@@ -271,6 +307,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     joinRoom,
     leaveRoom,
     updatePresence,
+    updateRoomName,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

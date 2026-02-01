@@ -40,12 +40,10 @@ export function ParticipantList() {
                 {participant.name}
                 {isMe && ' (you)'}
               </span>
-              {isActive && (
-                <span className="participant-timer-badge">
-                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor">
-                    <polygon points="5,3 19,12 5,21" />
-                  </svg>
-                  00:00
+              {!isActive && (
+                <span className="participant-inactive-badge">
+                  <span className="inactive-dot" />
+                  inactive
                 </span>
               )}
             </div>

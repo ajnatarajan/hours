@@ -73,6 +73,7 @@ alter publication supabase_realtime add table room_state;
 alter publication supabase_realtime add table participants;
 alter publication supabase_realtime add table tasks;
 alter publication supabase_realtime add table messages;
+alter publication supabase_realtime add table rooms;
 
 -- ============================================
 -- ROW LEVEL SECURITY
