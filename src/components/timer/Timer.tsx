@@ -4,39 +4,39 @@ import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 
 export function Timer() {
-  const { secondsLeft, isRunning, focusMinutes, start, pause, setDurations } = useTimer()
+  const { secondsLeft, isRunning, timerMinutes, start, pause, setMinutes } = useTimer()
   const { sendSystemMessage } = useChatContext()
   const { currentParticipant } = useRoomContext()
   const [isCustomMode, setIsCustomMode] = useState(false)
   const [customMinutes, setCustomMinutes] = useState('')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync custom minutes with actual focusMinutes from room state
+  // Sync custom minutes with actual timerMinutes from room state
   useEffect(() => {
     // Only update customMinutes if we're in custom mode and the value changed externally
     if (isCustomMode) {
-      setCustomMinutes(focusMinutes.toString())
+      setCustomMinutes(timerMinutes.toString())
     }
-  }, [focusMinutes, isCustomMode])
+  }, [timerMinutes, isCustomMode])
 
-  // Determine which preset is currently active based on focusMinutes
+  // Determine which preset is currently active based on timerMinutes
   const getCurrentPreset = () => {
     if (isCustomMode) return 'Custom'
-    if (focusMinutes === 25) return '25 min focus'
-    if (focusMinutes === 50) return '50 min focus'
+    if (timerMinutes === 25) return '25 mins'
+    if (timerMinutes === 50) return '50 mins'
     return '----------'
   }
 
   const handlePresetChange = async (value: string) => {
-    if (value === '25 min focus') {
+    if (value === '25 mins') {
       setIsCustomMode(false)
-      await setDurations(25, 5)
-    } else if (value === '50 min focus') {
+      await setMinutes(25)
+    } else if (value === '50 mins') {
       setIsCustomMode(false)
-      await setDurations(50, 10)
+      await setMinutes(50)
     } else if (value === 'Custom') {
       setIsCustomMode(true)
-      setCustomMinutes(focusMinutes.toString())
+      setCustomMinutes(timerMinutes.toString())
     } else {
       // "----------" option - exit custom mode but don't change duration
       setIsCustomMode(false)
@@ -54,9 +54,7 @@ export function Timer() {
     debounceRef.current = setTimeout(async () => {
       const mins = parseInt(value, 10)
       if (!isNaN(mins) && mins > 0 && mins <= 180) {
-        // Calculate a reasonable break time (roughly 1/5 of focus time, minimum 5 mins)
-        const breakMins = Math.max(5, Math.ceil(mins / 5))
-        await setDurations(mins, breakMins)
+        await setMinutes(mins)
       }
     }, 300) // 300ms debounce
   }
@@ -72,11 +70,9 @@ export function Timer() {
   const minutes = Math.floor((secondsLeft % 3600) / 60)
   const seconds = secondsLeft % 60
 
-  const formattedTime = [
-    hours.toString().padStart(2, '0'),
-    minutes.toString().padStart(2, '0'),
-    seconds.toString().padStart(2, '0'),
-  ].join(':')
+  const formattedTime = hours > 0
+    ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+    : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 
   const handleToggle = async () => {
     const participantName = currentParticipant?.name || 'Someone'
@@ -88,7 +84,7 @@ export function Timer() {
     } else {
       // Starting the timer
       await start()
-      await sendSystemMessage(`Timer started for ${focusMinutes} mins by ${participantName}.`)
+      await sendSystemMessage(`Timer started for ${timerMinutes} mins by ${participantName}.`)
     }
   }
 
@@ -149,8 +145,8 @@ export function Timer() {
             onChange={(e) => handlePresetChange(e.target.value)}
           >
             <option>----------</option>
-            <option>25 min focus</option>
-            <option>50 min focus</option>
+            <option>25 mins</option>
+            <option>50 mins</option>
             <option>Custom</option>
           </select>
         )}

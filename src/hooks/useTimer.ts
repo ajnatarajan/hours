@@ -13,8 +13,7 @@ export function useTimer() {
       return
     }
 
-    const totalSeconds =
-      (roomState.phase === 'focus' ? roomState.focus_minutes : roomState.break_minutes) * 60
+    const totalSeconds = roomState.timer_minutes * 60
 
     const tick = () => {
       if (!roomState.running || !roomState.started_at) {
@@ -28,9 +27,9 @@ export function useTimer() {
       const remaining = Math.max(0, totalSeconds - elapsed)
       setSecondsLeft(remaining)
 
-      // Auto-switch phase when timer hits 0
+      // Stop timer when it hits 0
       if (remaining === 0 && roomState.running) {
-        switchPhase()
+        stop()
       }
     }
 
@@ -63,7 +62,7 @@ export function useTimer() {
       .eq('room_id', room.id)
   }, [room])
 
-  const reset = useCallback(async () => {
+  const stop = useCallback(async () => {
     if (!room) return
 
     await supabase
@@ -75,30 +74,14 @@ export function useTimer() {
       .eq('room_id', room.id)
   }, [room])
 
-  const switchPhase = useCallback(async () => {
-    if (!room || !roomState) return
-
-    const newPhase = roomState.phase === 'focus' ? 'break' : 'focus'
-
-    await supabase
-      .from('room_state')
-      .update({
-        phase: newPhase,
-        running: false,
-        started_at: null,
-      })
-      .eq('room_id', room.id)
-  }, [room, roomState])
-
-  const setDurations = useCallback(
-    async (focusMinutes: number, breakMinutes: number) => {
+  const setMinutes = useCallback(
+    async (minutes: number) => {
       if (!room) return
 
       await supabase
         .from('room_state')
         .update({
-          focus_minutes: focusMinutes,
-          break_minutes: breakMinutes,
+          timer_minutes: minutes,
         })
         .eq('room_id', room.id)
     },
@@ -106,23 +89,25 @@ export function useTimer() {
   )
 
   const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60)
+    const hours = Math.floor(seconds / 3600)
+    const mins = Math.floor((seconds % 3600) / 60)
     const secs = seconds % 60
+    
+    if (hours > 0) {
+      return `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+    }
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
   }
 
   return {
     secondsLeft,
     formattedTime: formatTime(secondsLeft),
-    phase: roomState?.phase ?? 'focus',
     isRunning: roomState?.running ?? false,
-    focusMinutes: roomState?.focus_minutes ?? 25,
-    breakMinutes: roomState?.break_minutes ?? 5,
+    timerMinutes: roomState?.timer_minutes ?? 25,
     start,
     pause,
-    reset,
-    switchPhase,
-    setDurations,
+    stop,
+    setMinutes,
   }
 }
 

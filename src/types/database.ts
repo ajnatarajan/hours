@@ -33,29 +33,23 @@ export interface Database {
       room_state: {
         Row: {
           room_id: string
-          phase: 'focus' | 'break'
           started_at: string | null
           running: boolean
-          focus_minutes: number
-          break_minutes: number
+          timer_minutes: number
           background_id: string | null
         }
         Insert: {
           room_id: string
-          phase?: 'focus' | 'break'
           started_at?: string | null
           running?: boolean
-          focus_minutes?: number
-          break_minutes?: number
+          timer_minutes?: number
           background_id?: string | null
         }
         Update: {
           room_id?: string
-          phase?: 'focus' | 'break'
           started_at?: string | null
           running?: boolean
-          focus_minutes?: number
-          break_minutes?: number
+          timer_minutes?: number
           background_id?: string | null
         }
         Relationships: [

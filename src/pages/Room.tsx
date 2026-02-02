@@ -61,7 +61,7 @@ export function Room() {
   // Update document title with timer countdown
   useEffect(() => {
     if (isRunning) {
-      document.title = `Hours for Audrey - ${formattedTime}`
+      document.title = `${formattedTime} - Hours for Audrey`
     } else {
       document.title = 'Hours for Audrey'
     }
