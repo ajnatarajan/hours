@@ -1,14 +1,14 @@
 const AVATAR_COLORS = [
-  '#4CD964', // green
-  '#FF6B6B', // red
-  '#4DABF7', // blue
-  '#FFD93D', // yellow
-  '#9775FA', // purple
-  '#FF922B', // orange
-  '#F06595', // pink
-  '#20C997', // teal
-  '#69DB7C', // light green
-  '#748FFC', // indigo
+  '#FFB6C1', // light pink
+  '#FF69B4', // hot pink
+  '#FF1493', // deep pink
+  '#DB7093', // pale violet red
+  '#FFC0CB', // pink
+  '#FFD1DC', // pastel pink
+  '#E75480', // dark pink
+  '#F4A7B9', // nadeshiko pink
+  '#FADADD', // pale pink
+  '#FF85A2', // salmon pink
 ]
 
 export function getAvatarColor(id: string): string {
