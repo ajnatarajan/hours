@@ -35,21 +35,21 @@ export interface Database {
           room_id: string
           started_at: string | null
           running: boolean
-          timer_minutes: number
+          timer_seconds: number
           background_id: string | null
         }
         Insert: {
           room_id: string
           started_at?: string | null
           running?: boolean
-          timer_minutes?: number
+          timer_seconds?: number
           background_id?: string | null
         }
         Update: {
           room_id?: string
           started_at?: string | null
           running?: boolean
-          timer_minutes?: number
+          timer_seconds?: number
           background_id?: string | null
         }
         Relationships: [

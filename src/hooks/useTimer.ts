@@ -13,7 +13,7 @@ export function useTimer() {
       return
     }
 
-    const totalSeconds = roomState.timer_minutes * 60
+    const totalSeconds = roomState.timer_seconds
 
     const tick = () => {
       if (!roomState.running || !roomState.started_at) {
@@ -74,14 +74,14 @@ export function useTimer() {
       .eq('room_id', room.id)
   }, [room])
 
-  const setMinutes = useCallback(
-    async (minutes: number) => {
+  const setTimerSeconds = useCallback(
+    async (seconds: number) => {
       if (!room) return
 
       await supabase
         .from('room_state')
         .update({
-          timer_minutes: minutes,
+          timer_seconds: seconds,
         })
         .eq('room_id', room.id)
     },
@@ -103,11 +103,11 @@ export function useTimer() {
     secondsLeft,
     formattedTime: formatTime(secondsLeft),
     isRunning: roomState?.running ?? false,
-    timerMinutes: roomState?.timer_minutes ?? 25,
+    timerSeconds: roomState?.timer_seconds ?? 1500, // Default 25 minutes
     start,
     pause,
     stop,
-    setMinutes,
+    setTimerSeconds,
   }
 }
 

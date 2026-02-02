@@ -18,7 +18,7 @@ create table if not exists room_state (
   room_id uuid primary key references rooms(id) on delete cascade,
   started_at timestamp with time zone,
   running boolean default false,
-  timer_minutes int default 25,
+  timer_seconds int default 1500,  -- Default 25 minutes in seconds
   background_id text default 'video-1'
 );
 
@@ -49,6 +49,12 @@ create table if not exists participants (
 -- ALTER TABLE room_state DROP COLUMN IF EXISTS phase;
 -- ALTER TABLE room_state DROP COLUMN IF EXISTS focus_minutes;
 -- ALTER TABLE room_state DROP COLUMN IF EXISTS break_minutes;
+
+-- Migration: Change timer_minutes to timer_seconds for HH:MM:SS support
+-- Run this in Supabase SQL Editor for existing databases:
+-- ALTER TABLE room_state ADD COLUMN timer_seconds int DEFAULT 1500;
+-- UPDATE room_state SET timer_seconds = timer_minutes * 60;
+-- ALTER TABLE room_state DROP COLUMN timer_minutes;
 
 -- Tasks
 create table if not exists tasks (

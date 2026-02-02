@@ -4,59 +4,91 @@ import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 
 export function Timer() {
-  const { secondsLeft, isRunning, timerMinutes, start, pause, setMinutes } = useTimer()
+  const { secondsLeft, isRunning, timerSeconds, start, pause, setTimerSeconds } = useTimer()
   const { sendSystemMessage } = useChatContext()
   const { currentParticipant } = useRoomContext()
   const [isCustomMode, setIsCustomMode] = useState(false)
-  const [customMinutes, setCustomMinutes] = useState('')
+  const [customHours, setCustomHours] = useState('0')
+  const [customMinutes, setCustomMinutes] = useState('25')
+  const [customSeconds, setCustomSeconds] = useState('0')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-  // Sync custom minutes with actual timerMinutes from room state
+  // Sync custom time fields with actual timerSeconds from room state
   useEffect(() => {
-    // Only update customMinutes if we're in custom mode and the value changed externally
     if (isCustomMode) {
-      setCustomMinutes(timerMinutes.toString())
+      const h = Math.floor(timerSeconds / 3600)
+      const m = Math.floor((timerSeconds % 3600) / 60)
+      const s = timerSeconds % 60
+      setCustomHours(h.toString())
+      setCustomMinutes(m.toString())
+      setCustomSeconds(s.toString())
     }
-  }, [timerMinutes, isCustomMode])
+  }, [timerSeconds, isCustomMode])
 
-  // Determine which preset is currently active based on timerMinutes
+  // Determine which preset is currently active based on timerSeconds
   const getCurrentPreset = () => {
     if (isCustomMode) return 'Custom'
-    if (timerMinutes === 25) return '25 mins'
-    if (timerMinutes === 50) return '50 mins'
+    if (timerSeconds === 25 * 60) return '25 mins'
+    if (timerSeconds === 50 * 60) return '50 mins'
     return '----------'
   }
 
   const handlePresetChange = async (value: string) => {
     if (value === '25 mins') {
       setIsCustomMode(false)
-      await setMinutes(25)
+      await setTimerSeconds(25 * 60)
     } else if (value === '50 mins') {
       setIsCustomMode(false)
-      await setMinutes(50)
+      await setTimerSeconds(50 * 60)
     } else if (value === 'Custom') {
       setIsCustomMode(true)
-      setCustomMinutes(timerMinutes.toString())
+      const h = Math.floor(timerSeconds / 3600)
+      const m = Math.floor((timerSeconds % 3600) / 60)
+      const s = timerSeconds % 60
+      setCustomHours(h.toString())
+      setCustomMinutes(m.toString())
+      setCustomSeconds(s.toString())
     } else {
       // "----------" option - exit custom mode but don't change duration
       setIsCustomMode(false)
     }
   }
 
-  const handleCustomMinutesChange = (value: string) => {
-    setCustomMinutes(value)
-    
+  const updateTimerFromCustomInputs = (h: string, m: string, s: string) => {
     // Debounce the database update for live editing
     if (debounceRef.current) {
       clearTimeout(debounceRef.current)
     }
     
     debounceRef.current = setTimeout(async () => {
-      const mins = parseInt(value, 10)
-      if (!isNaN(mins) && mins > 0 && mins <= 180) {
-        await setMinutes(mins)
+      const hours = parseInt(h, 10) || 0
+      const mins = parseInt(m, 10) || 0
+      const secs = parseInt(s, 10) || 0
+      const totalSeconds = hours * 3600 + mins * 60 + secs
+      
+      // Allow anything from 1 second to 24 hours
+      if (totalSeconds > 0 && totalSeconds <= 24 * 3600) {
+        await setTimerSeconds(totalSeconds)
       }
     }, 300) // 300ms debounce
+  }
+
+  const handleCustomHoursChange = (value: string) => {
+    const clamped = Math.min(Math.max(parseInt(value, 10) || 0, 0), 23).toString()
+    setCustomHours(value === '' ? '' : clamped)
+    updateTimerFromCustomInputs(clamped, customMinutes, customSeconds)
+  }
+
+  const handleCustomMinutesChange = (value: string) => {
+    const clamped = Math.min(Math.max(parseInt(value, 10) || 0, 0), 59).toString()
+    setCustomMinutes(value === '' ? '' : clamped)
+    updateTimerFromCustomInputs(customHours, clamped, customSeconds)
+  }
+
+  const handleCustomSecondsChange = (value: string) => {
+    const clamped = Math.min(Math.max(parseInt(value, 10) || 0, 0), 59).toString()
+    setCustomSeconds(value === '' ? '' : clamped)
+    updateTimerFromCustomInputs(customHours, customMinutes, clamped)
   }
 
   const handleBackToPresets = () => {
@@ -74,6 +106,27 @@ export function Timer() {
     ? `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
     : `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
 
+  // Format duration for chat messages
+  const formatDurationForMessage = (totalSecs: number): string => {
+    const h = Math.floor(totalSecs / 3600)
+    const m = Math.floor((totalSecs % 3600) / 60)
+    const s = totalSecs % 60
+    
+    if (h > 0 && m > 0 && s > 0) {
+      return `${h}h ${m}m ${s}s`
+    } else if (h > 0 && m > 0) {
+      return `${h}h ${m}m`
+    } else if (h > 0) {
+      return `${h}h`
+    } else if (m > 0 && s > 0) {
+      return `${m}m ${s}s`
+    } else if (m > 0) {
+      return `${m} min${m !== 1 ? 's' : ''}`
+    } else {
+      return `${s}s`
+    }
+  }
+
   const handleToggle = async () => {
     const participantName = currentParticipant?.name || 'Someone'
     
@@ -84,7 +137,7 @@ export function Timer() {
     } else {
       // Starting the timer
       await start()
-      await sendSystemMessage(`Timer started for ${timerMinutes} mins by ${participantName}.`)
+      await sendSystemMessage(`Timer started for ${formatDurationForMessage(timerSeconds)} by ${participantName}.`)
     }
   }
 
@@ -113,7 +166,7 @@ export function Timer() {
 
       <div className="timer-controls-row">
         {isCustomMode ? (
-          // Custom mode: inline input replaces dropdown
+          // Custom mode: HH:MM:SS inputs
           <div className="timer-custom-inline">
             <button 
               className="timer-back-btn"
@@ -127,15 +180,37 @@ export function Timer() {
             </button>
             <input
               type="number"
-              className="timer-custom-input-inline"
+              className="timer-custom-input-hms"
+              value={customHours}
+              onChange={(e) => handleCustomHoursChange(e.target.value)}
+              placeholder="0"
+              min="0"
+              max="23"
+              title="Hours"
+            />
+            <span className="timer-custom-separator">:</span>
+            <input
+              type="number"
+              className="timer-custom-input-hms"
               value={customMinutes}
               onChange={(e) => handleCustomMinutesChange(e.target.value)}
-              placeholder="45"
-              min="1"
-              max="180"
+              placeholder="25"
+              min="0"
+              max="59"
               autoFocus
+              title="Minutes"
             />
-            <span className="timer-custom-label-inline">mins</span>
+            <span className="timer-custom-separator">:</span>
+            <input
+              type="number"
+              className="timer-custom-input-hms"
+              value={customSeconds}
+              onChange={(e) => handleCustomSecondsChange(e.target.value)}
+              placeholder="0"
+              min="0"
+              max="59"
+              title="Seconds"
+            />
           </div>
         ) : (
           // Preset mode: show dropdown

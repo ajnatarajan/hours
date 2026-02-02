@@ -1850,9 +1850,8 @@ body {
   color: var(--color-gray-700);
 }
 
-.timer-custom-input-inline {
-  flex: 1;
-  min-width: 0;
+.timer-custom-input-hms {
+  width: 28px;
   padding: 0;
   border: none;
   font-size: 14px;
@@ -1861,25 +1860,28 @@ body {
   background: transparent;
   appearance: textfield;
   -moz-appearance: textfield;
-  text-align: right;
+  text-align: center;
 }
 
-.timer-custom-input-inline::-webkit-outer-spin-button,
-.timer-custom-input-inline::-webkit-inner-spin-button {
+.timer-custom-input-hms::-webkit-outer-spin-button,
+.timer-custom-input-hms::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
 
-.timer-custom-input-inline:focus {
+.timer-custom-input-hms:focus {
   outline: none;
+  background: var(--color-gray-50);
+  border-radius: 2px;
 }
 
-.timer-custom-input-inline::placeholder {
+.timer-custom-input-hms::placeholder {
   color: var(--color-gray-400);
 }
 
-.timer-custom-label-inline {
-  font-size: 13px;
+.timer-custom-separator {
+  font-size: 14px;
+  font-weight: 500;
   color: var(--color-gray-500);
   flex-shrink: 0;
 }
