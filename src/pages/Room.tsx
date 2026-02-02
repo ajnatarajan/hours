@@ -189,9 +189,8 @@ export function Room() {
             
             <div className="tasks-panel-header">
               <span>Tasks</span>
-              <div className="tasks-header-icons">
-                <BackgroundSelector />
-              </div>
+              <img src="/heart.svg" alt="Heart" className="tasks-header-heart" width="32" height="32" />
+              <BackgroundSelector />
             </div>
             <div className="tasks-grid">
               {sortedParticipants.map((participant) => (
