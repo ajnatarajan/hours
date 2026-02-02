@@ -27,7 +27,6 @@ export function Room() {
 
   const [showNameModal, setShowNameModal] = useState(false)
   const [hasAttemptedJoin, setHasAttemptedJoin] = useState(false)
-  const [soloMode, setSoloMode] = useState(false)
 
   // Derive current background from room state
   const currentBackgroundId = roomState?.background_id || 'video-1'
@@ -100,43 +99,27 @@ export function Room() {
         </div>
 
         <div className="header-actions">
-          {/* Solo Mode Toggle */}
-          <label className="toggle-container">
+          {/* Do Not Disturb Toggle */}
+          <label className="toggle-container toggle-dnd" title={currentParticipant?.do_not_disturb ? 'Disable Do Not Disturb' : 'Enable Do Not Disturb'}>
             <input
               type="checkbox"
-              checked={soloMode}
-              onChange={(e) => setSoloMode(e.target.checked)}
+              checked={currentParticipant?.do_not_disturb ?? false}
+              onChange={handleToggleDnd}
             />
             <span className="toggle-slider" />
-            <span className="toggle-label">Solo mode</span>
+            <span className="toggle-label">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+              </svg>
+              DND
+            </span>
           </label>
-
-          {/* Do Not Disturb Toggle */}
-          <button 
-            className={`header-icon-btn ${currentParticipant?.do_not_disturb ? 'dnd-active' : ''}`}
-            title={currentParticipant?.do_not_disturb ? 'Disable Do Not Disturb' : 'Enable Do Not Disturb'}
-            onClick={handleToggleDnd}
-          >
-            {/* Moon icon - purple background when DND is active via CSS */}
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-            </svg>
-          </button>
 
           {/* Settings Icon */}
           <button className="header-icon-btn" title="Settings">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="12" cy="12" r="3" />
               <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" />
-            </svg>
-          </button>
-
-          {/* Help Icon */}
-          <button className="header-icon-btn" title="Help">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <circle cx="12" cy="12" r="10" />
-              <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-              <line x1="12" y1="17" x2="12.01" y2="17" />
             </svg>
           </button>
 

@@ -14,7 +14,7 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
   const [editedName, setEditedName] = useState('')
   const inputRef = useRef<HTMLInputElement>(null)
 
-  const roomUrl = `https://hours.zone/invite/${roomCode}`
+  const roomUrl = `${window.location.origin}${import.meta.env.BASE_URL}room/${roomCode}`
 
   // Auto-focus input when entering edit mode
   useEffect(() => {

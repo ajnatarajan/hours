@@ -1251,6 +1251,29 @@ body {
   font-weight: 500;
 }
 
+/* DND Toggle Specific Styles */
+.toggle-dnd .toggle-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.toggle-dnd .toggle-label svg {
+  transition: all 0.3s;
+}
+
+.toggle-dnd input:checked ~ .toggle-label {
+  color: var(--color-purple);
+}
+
+.toggle-dnd input:checked ~ .toggle-label svg {
+  stroke: var(--color-purple);
+}
+
+.toggle-dnd input:checked + .toggle-slider {
+  background: var(--color-purple);
+}
+
 /* Header Icon Buttons */
 .header-icon-btn {
   width: 40px;
