@@ -3,6 +3,49 @@ import { useTimer } from '@/hooks/useTimer'
 import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 
+// Play an upbeat ding sound using Web Audio API
+function playDingSound() {
+  try {
+    const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
+    
+    // Create two oscillators for a richer, more upbeat sound
+    const oscillator1 = audioContext.createOscillator()
+    const oscillator2 = audioContext.createOscillator()
+    const gainNode1 = audioContext.createGain()
+    const gainNode2 = audioContext.createGain()
+    
+    // First tone - higher frequency
+    oscillator1.connect(gainNode1)
+    gainNode1.connect(audioContext.destination)
+    oscillator1.frequency.value = 880 // A5 note
+    oscillator1.type = 'sine'
+    
+    // Second tone - even higher for brightness
+    oscillator2.connect(gainNode2)
+    gainNode2.connect(audioContext.destination)
+    oscillator2.frequency.value = 1320 // E6 note (perfect fifth above)
+    oscillator2.type = 'sine'
+    
+    // Set initial volume and decay
+    const now = audioContext.currentTime
+    gainNode1.gain.setValueAtTime(0.3, now)
+    gainNode1.gain.exponentialRampToValueAtTime(0.01, now + 0.6)
+    gainNode2.gain.setValueAtTime(0.15, now)
+    gainNode2.gain.exponentialRampToValueAtTime(0.01, now + 0.6)
+    
+    // Start and stop
+    oscillator1.start(now)
+    oscillator1.stop(now + 0.6)
+    oscillator2.start(now)
+    oscillator2.stop(now + 0.6)
+    
+    // Clean up
+    setTimeout(() => audioContext.close(), 700)
+  } catch (e) {
+    console.warn('Could not play ding sound:', e)
+  }
+}
+
 export function Timer() {
   const { secondsLeft, isRunning, timerSeconds, start, pause, setTimerSeconds } = useTimer()
   const { sendSystemMessage } = useChatContext()
@@ -12,6 +55,8 @@ export function Timer() {
   const [customMinutes, setCustomMinutes] = useState('25')
   const [customSeconds, setCustomSeconds] = useState('0')
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const prevSecondsRef = useRef<number | null>(null)
+  const hasNotifiedEndRef = useRef(false)
 
   // Sync custom time fields with actual timerSeconds from room state
   useEffect(() => {
@@ -24,6 +69,25 @@ export function Timer() {
       setCustomSeconds(s.toString())
     }
   }, [timerSeconds, isCustomMode])
+
+  // Detect when timer ends and play sound + send message
+  useEffect(() => {
+    const prevSeconds = prevSecondsRef.current
+    
+    // Timer just hit 0 from a running state
+    if (prevSeconds !== null && prevSeconds > 0 && secondsLeft === 0 && !hasNotifiedEndRef.current) {
+      hasNotifiedEndRef.current = true
+      playDingSound()
+      sendSystemMessage('Timer has ended.')
+    }
+    
+    // Reset notification flag when timer starts running again
+    if (isRunning && secondsLeft > 0) {
+      hasNotifiedEndRef.current = false
+    }
+    
+    prevSecondsRef.current = secondsLeft
+  }, [secondsLeft, isRunning, sendSystemMessage])
 
   // Determine which preset is currently active based on timerSeconds
   const getCurrentPreset = () => {
