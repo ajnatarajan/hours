@@ -3,44 +3,31 @@ import { useTimer } from '@/hooks/useTimer'
 import { useChatContext } from '@/contexts/ChatContext'
 import { useRoomContext } from '@/contexts/RoomContext'
 
-// Play an upbeat ding sound using Web Audio API
+// Play a soft ding sound using Web Audio API
 function playDingSound() {
   try {
     const audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)()
     
-    // Create two oscillators for a richer, more upbeat sound
-    const oscillator1 = audioContext.createOscillator()
-    const oscillator2 = audioContext.createOscillator()
-    const gainNode1 = audioContext.createGain()
-    const gainNode2 = audioContext.createGain()
+    const oscillator = audioContext.createOscillator()
+    const gainNode = audioContext.createGain()
     
-    // First tone - higher frequency
-    oscillator1.connect(gainNode1)
-    gainNode1.connect(audioContext.destination)
-    oscillator1.frequency.value = 880 // A5 note
-    oscillator1.type = 'sine'
+    oscillator.connect(gainNode)
+    gainNode.connect(audioContext.destination)
     
-    // Second tone - even higher for brightness
-    oscillator2.connect(gainNode2)
-    gainNode2.connect(audioContext.destination)
-    oscillator2.frequency.value = 1320 // E6 note (perfect fifth above)
-    oscillator2.type = 'sine'
+    // Single gentle tone
+    oscillator.frequency.value = 830 // G#5 - pleasant, not too harsh
+    oscillator.type = 'sine'
     
-    // Set initial volume and decay
+    // Soft volume with gentle decay
     const now = audioContext.currentTime
-    gainNode1.gain.setValueAtTime(0.3, now)
-    gainNode1.gain.exponentialRampToValueAtTime(0.01, now + 0.6)
-    gainNode2.gain.setValueAtTime(0.15, now)
-    gainNode2.gain.exponentialRampToValueAtTime(0.01, now + 0.6)
+    gainNode.gain.setValueAtTime(0.15, now)
+    gainNode.gain.exponentialRampToValueAtTime(0.01, now + 0.5)
     
-    // Start and stop
-    oscillator1.start(now)
-    oscillator1.stop(now + 0.6)
-    oscillator2.start(now)
-    oscillator2.stop(now + 0.6)
+    oscillator.start(now)
+    oscillator.stop(now + 0.5)
     
     // Clean up
-    setTimeout(() => audioContext.close(), 700)
+    setTimeout(() => audioContext.close(), 600)
   } catch (e) {
     console.warn('Could not play ding sound:', e)
   }
