@@ -25,6 +25,7 @@ interface RoomContextValue {
   updateRoomName: (newName: string | null) => Promise<void>
   updateParticipantName: (newName: string) => Promise<void>
   toggleDoNotDisturb: () => Promise<boolean>
+  toggleBreak: () => Promise<boolean>
   updateBackground: (backgroundId: string) => Promise<void>
 }
 
@@ -347,6 +348,36 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     return newDndStatus
   }, [currentParticipant])
 
+  const toggleBreak = useCallback(async (): Promise<boolean> => {
+    if (!currentParticipant) return false
+    
+    const newBreakStatus = !currentParticipant.on_break
+    
+    const { data, error } = await supabase
+      .from('participants')
+      .update({ 
+        on_break: newBreakStatus,
+        break_started_at: newBreakStatus ? new Date().toISOString() : null
+      })
+      .eq('id', currentParticipant.id)
+      .select()
+      .single()
+    
+    if (error || !data) {
+      console.error('Failed to toggle break:', error)
+      return false
+    }
+    
+    // Update local state immediately
+    setCurrentParticipant(data)
+    // Also update in participants list
+    setParticipants(prev => 
+      prev.map(p => p.id === data.id ? data : p)
+    )
+    
+    return newBreakStatus
+  }, [currentParticipant])
+
   const updateBackground = useCallback(async (backgroundId: string) => {
     if (!room) return
     
@@ -383,6 +414,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     updateRoomName,
     updateParticipantName,
     toggleDoNotDisturb,
+    toggleBreak,
     updateBackground,
   }
 

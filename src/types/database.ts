@@ -69,6 +69,8 @@ export interface Database {
           name: string
           is_active: boolean
           do_not_disturb: boolean
+          on_break: boolean
+          break_started_at: string | null
           last_seen: string
           created_at: string
         }
@@ -79,6 +81,8 @@ export interface Database {
           name: string
           is_active?: boolean
           do_not_disturb?: boolean
+          on_break?: boolean
+          break_started_at?: string | null
           last_seen?: string
           created_at?: string
         }
@@ -89,6 +93,8 @@ export interface Database {
           name?: string
           is_active?: boolean
           do_not_disturb?: boolean
+          on_break?: boolean
+          break_started_at?: string | null
           last_seen?: string
           created_at?: string
         }

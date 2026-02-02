@@ -8,7 +8,7 @@ interface RoomTitleSectionProps {
 }
 
 export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSectionProps) {
-  const { updateRoomName } = useRoomContext()
+  const { updateRoomName, currentParticipant, toggleBreak } = useRoomContext()
   const [copied, setCopied] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState('')
@@ -124,6 +124,13 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
               <circle cx="6" cy="18" r="3" />
               <circle cx="18" cy="16" r="3" />
             </svg>
+          </button>
+          <button 
+            className={`room-action-btn room-action-btn-lavender ${currentParticipant?.on_break ? 'active' : ''}`}
+            title={currentParticipant?.on_break ? "End Break" : "Take a Break"}
+            onClick={toggleBreak}
+          >
+            <img src="/bunny.svg" alt="Break" width="20" height="20" />
           </button>
           <button className="room-action-btn room-action-btn-red" title="Leave Room" onClick={onLeave}>
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

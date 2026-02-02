@@ -30,6 +30,8 @@ create table if not exists participants (
   name text not null,
   is_active boolean default true,
   do_not_disturb boolean default false,
+  on_break boolean default false,
+  break_started_at timestamp with time zone,
   last_seen timestamp with time zone default now(),
   created_at timestamp with time zone default now()
 );
@@ -37,6 +39,11 @@ create table if not exists participants (
 -- Migration: Add do_not_disturb column if it doesn't exist
 -- Run this in Supabase SQL Editor for existing databases:
 -- ALTER TABLE participants ADD COLUMN IF NOT EXISTS do_not_disturb boolean DEFAULT false;
+
+-- Migration: Add break tracking columns if they don't exist
+-- Run this in Supabase SQL Editor for existing databases:
+-- ALTER TABLE participants ADD COLUMN IF NOT EXISTS on_break boolean DEFAULT false;
+-- ALTER TABLE participants ADD COLUMN IF NOT EXISTS break_started_at timestamp with time zone;
 
 -- Migration: Add background_id column if it doesn't exist
 -- Run this in Supabase SQL Editor for existing databases:

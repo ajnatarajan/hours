@@ -9,6 +9,7 @@ export function ParticipantList() {
   
   const [isEditing, setIsEditing] = useState(false)
   const [editedName, setEditedName] = useState('')
+  const [, forceUpdate] = useState(0)
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Auto-focus input when entering edit mode
@@ -18,6 +19,24 @@ export function ParticipantList() {
       inputRef.current.select()
     }
   }, [isEditing])
+
+  // Force re-render every second to update break timers
+  useEffect(() => {
+    const hasBreakingParticipants = sortedParticipants.some(p => p.on_break)
+    if (!hasBreakingParticipants) return
+    
+    const interval = setInterval(() => forceUpdate(n => n + 1), 1000)
+    return () => clearInterval(interval)
+  }, [sortedParticipants])
+
+  // Helper function to format break duration
+  const formatBreakDuration = (startedAt: string | null): string => {
+    if (!startedAt) return '00:00'
+    const elapsed = Math.floor((Date.now() - new Date(startedAt).getTime()) / 1000)
+    const mins = Math.floor(elapsed / 60)
+    const secs = elapsed % 60
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`
+  }
 
   const handleEditClick = () => {
     if (currentParticipant) {
@@ -114,6 +133,12 @@ export function ParticipantList() {
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                   </svg>
+                </span>
+              )}
+              {participant.on_break && (
+                <span className="participant-break-badge" title="On Break">
+                  <img src="/bunny.svg" alt="" width="14" height="14" />
+                  <span className="break-timer">{formatBreakDuration(participant.break_started_at)}</span>
                 </span>
               )}
               {!isActive && (
