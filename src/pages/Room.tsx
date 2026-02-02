@@ -199,7 +199,9 @@ export function Room() {
                   key={participant.id}
                   participant={participant}
                   isCurrentUser={participant.id === currentParticipant?.id}
-                  tasks={allTasks.filter(t => t.participant_id === participant.id)}
+                  tasks={allTasks
+                    .filter(t => t.participant_id === participant.id)
+                    .sort((a, b) => a.sort_order - b.sort_order)}
                   onAddTask={addTask}
                   onToggleTask={toggleTask}
                   onDeleteTask={deleteTask}
