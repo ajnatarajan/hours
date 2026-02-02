@@ -77,7 +77,7 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
             maxLength={45}
           />
         ) : (
-          <>
+          <div className="room-title-row">
             <h1 className="room-title">
               {roomName || 'Study With Your Babi'}
             </h1>
@@ -87,8 +87,13 @@ export function RoomTitleSection({ roomCode, roomName, onLeave }: RoomTitleSecti
                 <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
               </svg>
             </button>
-          </>
+          </div>
         )}
+      </div>
+
+      {/* Center cherry blossom icon */}
+      <div className="room-center-icon">
+        <img src="/cherry-blossom-icon.png" alt="Cherry Blossom" width="64" height="64" />
       </div>
 
       {/* Bottom row: link, copy, icons */}

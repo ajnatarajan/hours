@@ -1642,8 +1642,20 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
   padding-top: 4px;
+}
+
+.room-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.room-center-icon {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 1;
 }
 
 .room-info-content .room-title {
