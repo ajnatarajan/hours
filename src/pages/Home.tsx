@@ -115,9 +115,9 @@ export function Home() {
 
       {/* Logo */}
       <div className="home-logo">
-        hours<span className="home-logo-dot" />
+        hours<img src="/cherry-blossom-icon.png" alt="" className="home-logo-icon" />
       </div>
-      <p className="home-tagline">Focus together. Accomplish more.</p>
+      <p className="home-tagline">A site I built specifically for you, Audrey.</p>
 
       {/* Main card */}
       <div className="home-card">

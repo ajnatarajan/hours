@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Snippet&display=swap');
 
 *,
 *::before,
@@ -6,13 +6,14 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  font-family: inherit;
 }
 
 :root {
-  /* Colors - Green and white theme */
-  --color-primary: #4CD964;
-  --color-primary-dark: #3CB371;
-  --color-primary-light: #90EE90;
+  /* Colors - Soft pink and white theme */
+  --color-primary: #F8BBD0;
+  --color-primary-dark: #F196B7;
+  --color-primary-light: #FCE4EC;
   
   --color-white: #ffffff;
   --color-gray-50: #fafafa;
@@ -34,8 +35,12 @@
   --color-pink: #f06595;
   --color-teal: #20c997;
 
+  /* Soft pink for action buttons */
+  --color-soft-pink: #F8BBD0;
+  --color-soft-pink-dark: #F196B7;
+
   /* Typography */
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Snippet', system-ui, -apple-system, sans-serif;
 
   /* Shadows */
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
@@ -566,7 +571,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: var(--color-soft-pink);
   color: var(--color-white);
   border: none;
   border-radius: 4px;
@@ -580,7 +585,7 @@ body {
 }
 
 .room-link-copy-btn:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-soft-pink-dark);
 }
 
 /* Tasks canvas */
@@ -712,6 +717,25 @@ body {
   background: var(--color-gray-50);
 }
 
+/* Drag and drop styles */
+.task-item[draggable="true"] {
+  cursor: grab;
+}
+
+.task-item[draggable="true"]:active {
+  cursor: grabbing;
+}
+
+.task-item.dragging {
+  opacity: 0.5;
+  background: var(--color-gray-100);
+}
+
+.task-item.drag-over {
+  border-top: 2px solid var(--color-primary-dark);
+  margin-top: -2px;
+}
+
 .task-checkbox {
   position: relative;
   width: 18px;
@@ -784,6 +808,34 @@ body {
 .task-text.completed {
   text-decoration: line-through;
   color: var(--color-gray-400);
+}
+
+.task-text.editable {
+  cursor: text;
+}
+
+.task-text.editable:hover {
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 2px;
+}
+
+/* Task edit input */
+.task-edit-input {
+  flex: 1;
+  background: var(--color-white);
+  border: 1px solid var(--color-primary);
+  border-radius: var(--radius-sm);
+  padding: 4px 8px;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--color-gray-700);
+  outline: none;
+}
+
+.task-edit-input:focus {
+  border-color: var(--color-primary-dark);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
 }
 
 .task-delete-btn {
@@ -1015,6 +1067,14 @@ body {
   border-radius: var(--radius-full);
 }
 
+.home-logo-icon {
+  width: 28px;
+  height: 28px;
+  object-fit: contain;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
 .home-tagline {
   font-size: 16px;
   color: var(--color-gray-500);
@@ -1192,6 +1252,13 @@ body {
   background: var(--color-primary);
   border-radius: var(--radius-full);
   margin-top: 6px;
+}
+
+.logo-icon {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
+  margin-top: 2px;
 }
 
 .header-actions {
@@ -1647,12 +1714,12 @@ body {
 }
 
 .room-action-btn-green {
-  background: var(--color-primary);
+  background: var(--color-soft-pink);
   color: var(--color-white);
 }
 
 .room-action-btn-green:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-soft-pink-dark);
 }
 
 .room-action-btn-dark {
@@ -1739,7 +1806,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: var(--color-soft-pink);
   color: var(--color-white);
   border: none;
   border-radius: 4px;
@@ -1748,7 +1815,7 @@ body {
 }
 
 .timer-toggle-btn:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-soft-pink-dark);
 }
 
 .timer-custom-inline {
@@ -1858,7 +1925,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary);
+  background: var(--color-soft-pink);
   color: var(--color-white);
   border: none;
   border-radius: 4px;
@@ -1867,7 +1934,7 @@ body {
 }
 
 .chat-video-btn:hover {
-  background: var(--color-primary-dark);
+  background: var(--color-soft-pink-dark);
 }
 
 /* ============================================

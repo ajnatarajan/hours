@@ -195,6 +195,32 @@ export function useTasks() {
     setAllTasks((prev) => prev.filter((t) => t.id !== taskId))
   }, [])
 
+  const reorderTasks = useCallback(
+    async (participantId: string, orderedTaskIds: string[]) => {
+      // Optimistically update local state first
+      setAllTasks((prev) => {
+        const participantTasks = prev.filter(t => t.participant_id === participantId)
+        const otherTasks = prev.filter(t => t.participant_id !== participantId)
+        
+        // Reorder participant's tasks based on the new order
+        const reorderedTasks = orderedTaskIds.map((id, index) => {
+          const task = participantTasks.find(t => t.id === id)
+          return task ? { ...task, sort_order: index } : null
+        }).filter(Boolean) as Task[]
+        
+        return [...otherTasks, ...reorderedTasks]
+      })
+
+      // Update in database
+      const updates = orderedTaskIds.map((id, index) => 
+        supabase.from('tasks').update({ sort_order: index }).eq('id', id)
+      )
+      
+      await Promise.all(updates)
+    },
+    []
+  )
+
   return {
     allTasks,
     isLoading,
@@ -202,5 +228,6 @@ export function useTasks() {
     updateTask,
     toggleTask,
     deleteTask,
+    reorderTasks,
   }
 }

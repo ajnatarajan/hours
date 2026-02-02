@@ -5,6 +5,7 @@ import { useRoomContext } from '@/contexts/RoomContext'
 import { useChatContext } from '@/contexts/ChatContext'
 import { useParticipants } from '@/hooks/useParticipants'
 import { useTasks } from '@/hooks/useTasks'
+import { useTimer } from '@/hooks/useTimer'
 import { ParticipantList } from '@/components/room/ParticipantList'
 import { Chat } from '@/components/chat/Chat'
 import { Timer } from '@/components/timer/Timer'
@@ -23,7 +24,10 @@ export function Room() {
   const { sortedParticipants, currentParticipant } = useParticipants()
   
   // Single instance of useTasks - state lifted up to Room level
-  const { allTasks, addTask, toggleTask, deleteTask, isLoading: tasksLoading } = useTasks()
+  const { allTasks, addTask, updateTask, toggleTask, deleteTask, reorderTasks, isLoading: tasksLoading } = useTasks()
+  
+  // Timer state for document title
+  const { formattedTime, isRunning } = useTimer()
 
   const [showNameModal, setShowNameModal] = useState(false)
   const [hasAttemptedJoin, setHasAttemptedJoin] = useState(false)
@@ -53,6 +57,20 @@ export function Room() {
       joinRoom(code)
     }
   }, [code, displayName, room, isLoading, hasAttemptedJoin, joinRoom, navigate])
+
+  // Update document title with timer countdown
+  useEffect(() => {
+    if (isRunning) {
+      document.title = `Hours for Audrey - ${formattedTime}`
+    } else {
+      document.title = 'Hours for Audrey'
+    }
+    
+    // Cleanup: reset title when leaving the room
+    return () => {
+      document.title = 'Hours for Audrey'
+    }
+  }, [isRunning, formattedTime])
 
   const handleNameComplete = () => {
     setShowNameModal(false)
@@ -95,7 +113,7 @@ export function Room() {
             <span className="logo-main">hours</span>
             <span className="logo-sub">for Audrey</span>
           </div>
-          <span className="logo-dot" />
+          <img src="/cherry-blossom-icon.png" alt="" className="logo-icon" />
         </div>
 
         <div className="header-actions">
@@ -198,6 +216,8 @@ export function Room() {
                   onAddTask={addTask}
                   onToggleTask={toggleTask}
                   onDeleteTask={deleteTask}
+                  onUpdateTask={updateTask}
+                  onReorderTasks={reorderTasks}
                   isLoading={tasksLoading}
                 />
               ))}
