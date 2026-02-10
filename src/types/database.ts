@@ -71,6 +71,7 @@ export interface Database {
           do_not_disturb: boolean
           on_break: boolean
           break_started_at: string | null
+          current_task_id: string | null
           last_seen: string
           created_at: string
         }
@@ -83,6 +84,7 @@ export interface Database {
           do_not_disturb?: boolean
           on_break?: boolean
           break_started_at?: string | null
+          current_task_id?: string | null
           last_seen?: string
           created_at?: string
         }
@@ -95,6 +97,7 @@ export interface Database {
           do_not_disturb?: boolean
           on_break?: boolean
           break_started_at?: string | null
+          current_task_id?: string | null
           last_seen?: string
           created_at?: string
         }

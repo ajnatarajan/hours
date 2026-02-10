@@ -800,7 +800,7 @@ body {
 
 .task-text {
   flex: 1;
-  font-size: 14px;
+  font-size: 16px;
   color: var(--color-gray-700);
   line-height: 1.4;
 }
@@ -840,7 +840,9 @@ body {
 
 .task-delete-btn {
   opacity: 0;
-  padding: 4px;
+  padding: 4px 0;
+  width: 0;
+  overflow: hidden;
   background: none;
   border: none;
   color: var(--color-gray-400);
@@ -850,10 +852,49 @@ body {
 
 .task-item:hover .task-delete-btn {
   opacity: 1;
+  padding: 4px;
+  width: auto;
 }
 
 .task-delete-btn:hover {
   color: var(--color-red);
+}
+
+/* Bow button (current task indicator) */
+.task-bow-btn {
+  opacity: 0;
+  padding: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  display: flex;
+  align-items: center;
+}
+
+/* Show bow on hover with reduced opacity (for non-active) */
+.task-item:hover .task-bow-btn {
+  opacity: 0.55;
+}
+
+/* Slightly more visible when directly hovering the bow */
+.task-item:hover .task-bow-btn:hover {
+  opacity: 0.75;
+}
+
+/* Active bow - always visible at full opacity */
+.task-bow-btn.active {
+  opacity: 1;
+}
+
+/* Keep full opacity on hover when active */
+.task-item:hover .task-bow-btn.active {
+  opacity: 1;
+}
+
+/* Slightly dim when hovering active bow (to indicate clickable) */
+.task-bow-btn.active:hover {
+  opacity: 0.8;
 }
 
 /* Add task */

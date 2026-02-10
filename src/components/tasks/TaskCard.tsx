@@ -6,11 +6,13 @@ interface TaskCardProps {
   participant: Participant
   isCurrentUser: boolean
   tasks: Task[]
+  currentTaskId: string | null
   onAddTask: (content: string) => Promise<Task | null>
   onToggleTask: (taskId: string) => Promise<void>
   onDeleteTask: (taskId: string) => Promise<void>
   onUpdateTask: (taskId: string, updates: { content?: string }) => Promise<void>
   onReorderTasks: (participantId: string, orderedTaskIds: string[]) => Promise<void>
+  onSetCurrentTask: (taskId: string | null) => Promise<void>
   isLoading: boolean
 }
 
@@ -18,11 +20,13 @@ export function TaskCard({
   participant, 
   isCurrentUser, 
   tasks,
+  currentTaskId,
   onAddTask,
   onToggleTask,
   onDeleteTask,
   onUpdateTask,
   onReorderTasks,
+  onSetCurrentTask,
   isLoading 
 }: TaskCardProps) {
   const [newTaskContent, setNewTaskContent] = useState('')
@@ -59,6 +63,30 @@ export function TaskCard({
     requestAnimationFrame(() => {
       inputRef.current?.focus()
     })
+  }
+
+  // Handle toggling task completion - also clears current task if marking done
+  const handleToggleTask = async (taskId: string) => {
+    const task = tasks.find(t => t.id === taskId)
+    const isMarkingDone = task && !task.done
+    const shouldClearCurrent = isMarkingDone && currentTaskId === taskId
+    
+    // Fire both in parallel for better latency
+    await Promise.all([
+      onToggleTask(taskId),
+      shouldClearCurrent ? onSetCurrentTask(null) : Promise.resolve()
+    ])
+  }
+
+  // Handle deleting task - also clears current task if deleting current
+  const handleDeleteTask = async (taskId: string) => {
+    const shouldClearCurrent = currentTaskId === taskId
+    
+    // Fire both in parallel for better latency
+    await Promise.all([
+      onDeleteTask(taskId),
+      shouldClearCurrent ? onSetCurrentTask(null) : Promise.resolve()
+    ])
   }
 
   const handleStartEdit = (task: Task, e: React.MouseEvent) => {
@@ -195,7 +223,7 @@ export function TaskCard({
                   <input
                     type="checkbox"
                     checked={task.done}
-                    onChange={() => onToggleTask(task.id)}
+                    onChange={() => handleToggleTask(task.id)}
                     disabled={!isCurrentUser}
                   />
                   <span className="task-checkbox-custom" />
@@ -221,15 +249,26 @@ export function TaskCard({
                 )}
                 
                 {isCurrentUser && editingTaskId !== task.id && (
-                  <button
-                    className="task-delete-btn"
-                    onClick={() => onDeleteTask(task.id)}
-                    title="Delete task"
-                  >
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <path d="M18 6L6 18M6 6l12 12" />
-                    </svg>
-                  </button>
+                  <>
+                    {!task.done && (
+                      <button
+                        className={`task-bow-btn ${currentTaskId === task.id ? 'active' : ''}`}
+                        onClick={() => onSetCurrentTask(currentTaskId === task.id ? null : task.id)}
+                        title={currentTaskId === task.id ? 'Stop working on this task' : 'Work on this task'}
+                      >
+                        <img src={`${import.meta.env.BASE_URL}bow.svg`} alt="" width="42" height="42" />
+                      </button>
+                    )}
+                    <button
+                      className="task-delete-btn"
+                      onClick={() => handleDeleteTask(task.id)}
+                      title="Delete task"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </>
                 )}
               </div>
             ))}

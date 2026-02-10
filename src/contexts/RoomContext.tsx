@@ -27,6 +27,7 @@ interface RoomContextValue {
   toggleDoNotDisturb: () => Promise<boolean>
   toggleBreak: () => Promise<boolean>
   updateBackground: (backgroundId: string) => Promise<void>
+  setCurrentTask: (taskId: string | null) => Promise<void>
 }
 
 const RoomContext = createContext<RoomContextValue | null>(null)
@@ -99,6 +100,12 @@ export function RoomProvider({ children }: { children: ReactNode }) {
             .order('id', { ascending: true })
           if (data) {
             setParticipants(data)
+            // Also update currentParticipant if it changed (e.g., current_task_id cleared by DB)
+            setCurrentParticipant(prev => {
+              if (!prev) return prev
+              const updated = data.find(p => p.id === prev.id)
+              return updated || prev
+            })
           }
         }
       )
@@ -392,6 +399,29 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     }
   }, [room, roomState])
 
+  const setCurrentTask = useCallback(async (taskId: string | null) => {
+    if (!currentParticipant) return
+    
+    const { data, error } = await supabase
+      .from('participants')
+      .update({ current_task_id: taskId })
+      .eq('id', currentParticipant.id)
+      .select()
+      .single()
+    
+    if (error || !data) {
+      console.error('Failed to set current task:', error)
+      return
+    }
+    
+    // Update local state immediately
+    setCurrentParticipant(data)
+    // Also update in participants list
+    setParticipants(prev => 
+      prev.map(p => p.id === data.id ? data : p)
+    )
+  }, [currentParticipant])
+
   // Update presence periodically
   useEffect(() => {
     if (!currentParticipant) return
@@ -416,6 +446,7 @@ export function RoomProvider({ children }: { children: ReactNode }) {
     toggleDoNotDisturb,
     toggleBreak,
     updateBackground,
+    setCurrentTask,
   }
 
   return <RoomContext.Provider value={value}>{children}</RoomContext.Provider>

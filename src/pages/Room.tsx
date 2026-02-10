@@ -19,7 +19,7 @@ export function Room() {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
   const { displayName } = useAuth()
-  const { room, roomState, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb } = useRoomContext()
+  const { room, roomState, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb, setCurrentTask } = useRoomContext()
   const { sendSystemMessage } = useChatContext()
   const { sortedActiveParticipants, currentParticipant } = useParticipants()
   
@@ -201,11 +201,13 @@ export function Room() {
                   tasks={allTasks
                     .filter(t => t.participant_id === participant.id)
                     .sort((a, b) => a.sort_order - b.sort_order)}
+                  currentTaskId={participant.id === currentParticipant?.id ? currentParticipant?.current_task_id ?? null : null}
                   onAddTask={addTask}
                   onToggleTask={toggleTask}
                   onDeleteTask={deleteTask}
                   onUpdateTask={updateTask}
                   onReorderTasks={reorderTasks}
+                  onSetCurrentTask={setCurrentTask}
                   isLoading={tasksLoading}
                 />
               ))}
