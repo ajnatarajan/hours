@@ -4,7 +4,7 @@ import { useRoomContext } from '@/contexts/RoomContext'
 import { getAvatarColor } from '@/lib/colors'
 
 export function ParticipantList() {
-  const { sortedParticipants, currentParticipant, isParticipantActive } = useParticipants()
+  const { sortedActiveParticipants, currentParticipant } = useParticipants()
   const { updateParticipantName } = useRoomContext()
   
   const [isEditing, setIsEditing] = useState(false)
@@ -22,12 +22,12 @@ export function ParticipantList() {
 
   // Force re-render every second to update break timers
   useEffect(() => {
-    const hasBreakingParticipants = sortedParticipants.some(p => p.on_break)
+    const hasBreakingParticipants = sortedActiveParticipants.some(p => p.on_break)
     if (!hasBreakingParticipants) return
     
     const interval = setInterval(() => forceUpdate(n => n + 1), 1000)
     return () => clearInterval(interval)
-  }, [sortedParticipants])
+  }, [sortedActiveParticipants])
 
   // Helper function to format break duration
   const formatBreakDuration = (startedAt: string | null): string => {
@@ -77,9 +77,8 @@ export function ParticipantList() {
         </div>
       </div>
       <div className="participant-list">
-        {sortedParticipants.map((participant) => {
+        {sortedActiveParticipants.map((participant) => {
           const isMe = participant.id === currentParticipant?.id
-          const isActive = isParticipantActive(participant)
           const initial = participant.name.charAt(0).toUpperCase()
           const color = getAvatarColor(participant.id)
 
@@ -127,12 +126,6 @@ export function ParticipantList() {
                 <span className="participant-break-badge" title="On Break">
                   <img src="/bunny.svg" alt="" width="14" height="14" />
                   <span className="break-timer">{formatBreakDuration(participant.break_started_at)}</span>
-                </span>
-              )}
-              {!isActive && (
-                <span className="participant-inactive-badge">
-                  <span className="inactive-dot" />
-                  inactive
                 </span>
               )}
             </div>

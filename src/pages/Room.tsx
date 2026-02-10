@@ -21,7 +21,7 @@ export function Room() {
   const { displayName } = useAuth()
   const { room, roomState, joinRoom, leaveRoom, isLoading, error, toggleDoNotDisturb } = useRoomContext()
   const { sendSystemMessage } = useChatContext()
-  const { sortedParticipants, currentParticipant } = useParticipants()
+  const { sortedActiveParticipants, currentParticipant } = useParticipants()
   
   // Single instance of useTasks - state lifted up to Room level
   const { allTasks, addTask, updateTask, toggleTask, deleteTask, reorderTasks, isLoading: tasksLoading } = useTasks()
@@ -193,7 +193,7 @@ export function Room() {
               <BackgroundSelector />
             </div>
             <div className="tasks-grid">
-              {sortedParticipants.map((participant) => (
+              {sortedActiveParticipants.map((participant) => (
                 <TaskCard
                   key={participant.id}
                   participant={participant}

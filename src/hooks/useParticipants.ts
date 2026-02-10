@@ -38,9 +38,26 @@ export function useParticipants() {
     return participants.filter(isParticipantActive)
   }, [participants])
 
+  // Sorted ACTIVE participants: current user first, then active others by join time
+  const sortedActiveParticipants = useMemo(() => {
+    if (!currentParticipant) return participants.filter(isParticipantActive)
+
+    const activeOthers = participants
+      .filter((p) => p.id !== currentParticipant.id && isParticipantActive(p))
+      .sort((a, b) => {
+        const timeA = new Date(a.created_at).getTime()
+        const timeB = new Date(b.created_at).getTime()
+        if (timeA !== timeB) return timeA - timeB
+        return a.id.localeCompare(b.id)
+      })
+
+    return [currentParticipant, ...activeOthers]
+  }, [participants, currentParticipant])
+
   return {
     participants,
     sortedParticipants,
+    sortedActiveParticipants,
     currentParticipant,
     otherParticipants,
     activeParticipants,
