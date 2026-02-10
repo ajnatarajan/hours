@@ -863,13 +863,16 @@ body {
 /* Bow button (current task indicator) */
 .task-bow-btn {
   opacity: 0;
-  padding: 4px;
+  padding: 0;
   background: none;
   border: none;
   cursor: pointer;
   transition: opacity 0.15s;
   display: flex;
   align-items: center;
+  justify-content: center;
+  height: 22px;
+  overflow: visible;
 }
 
 /* Show bow on hover with reduced opacity (for non-active) */

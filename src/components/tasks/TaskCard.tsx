@@ -248,6 +248,13 @@ export function TaskCard({
                   </span>
                 )}
                 
+                {/* Show bow for other users' current task (non-interactive) */}
+                {!isCurrentUser && !task.done && currentTaskId === task.id && (
+                  <span className="task-bow-btn active" style={{ cursor: 'default' }}>
+                    <img src={`${import.meta.env.BASE_URL}bow.svg`} alt="" width="42" height="42" />
+                  </span>
+                )}
+
                 {isCurrentUser && editingTaskId !== task.id && (
                   <>
                     {!task.done && (

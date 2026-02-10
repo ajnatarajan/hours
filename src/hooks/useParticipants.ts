@@ -30,8 +30,8 @@ export function useParticipants() {
     if (!participant.last_seen) return false
     const lastSeen = new Date(participant.last_seen).getTime()
     const now = Date.now()
-    // Consider active if seen within last 2 minutes
-    return now - lastSeen < 2 * 60 * 1000
+    // Consider active if seen within last 30 seconds
+    return now - lastSeen < 30 * 1000
   }
 
   const activeParticipants = useMemo(() => {
