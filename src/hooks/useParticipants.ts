@@ -30,8 +30,13 @@ export function useParticipants() {
     if (!participant.last_seen) return false
     const lastSeen = new Date(participant.last_seen).getTime()
     const now = Date.now()
-    // Consider active if seen within last 30 seconds
-    return now - lastSeen < 30 * 1000
+    // Consider active if seen within last 2 minutes
+    // If we do shorter than 1 min, we run into browser tab throttling
+    // This forces frequent timers to check no more than every 1 minute
+    // Which if we have this interval set to < 1 minute, may result in
+    // expiration solely because the timer intervals to refresh are too 
+    // infrequent. And so the below condition may automatically return False.
+    return now - lastSeen < 2 * 60 * 1000
   }
 
   const activeParticipants = useMemo(() => {
